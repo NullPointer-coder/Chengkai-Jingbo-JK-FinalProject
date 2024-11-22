@@ -13,7 +13,10 @@ class ProfileFragment : Fragment() {
 
     private val userRepository by lazy { UserRepository() } // 初始化 UserRepository
     private val profileViewModel: ProfileViewModel by lazy {
-        ViewModelProvider(this, ProfileViewModelFactory(userRepository)).get(ProfileViewModel::class.java)
+        ViewModelProvider(
+            this,
+            ProfileViewModelFactory(userRepository)
+        )[ProfileViewModel::class.java]
     }
 
     override fun onCreateView(

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "495074866441",
+    "project_id": "smartreciperecommenderapp",
+    "storage_bucket": "smartreciperecommenderapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495074866441:android:0ac1d08756596237c80fd8",
+        "android_client_info": {
+          "package_name": "com.example.smartreciperecommenderapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAj97VkFt469fTI8QFBFyR6ODHuy-2WE30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

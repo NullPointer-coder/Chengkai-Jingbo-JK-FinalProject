@@ -1,4 +1,4 @@
-package com.example.smartreciperecommenderapp.ui.ProfileScreen.loggedout
+package com.example.smartreciperecommenderapp.ui.ProfileScreen.signin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,9 +15,11 @@ import androidx.compose.material.icons.filled.*
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 
 @Composable
-fun LoggedOutScreen(profileViewModel: ProfileViewModel) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun SignInScreen(profileViewModel: ProfileViewModel,
+                 onSignInSuccess: () -> Unit, // Callback for successful sign-in
+                 onSignInFailed: (String) -> Unit) {
+    var email by remember { mutableStateOf(profileViewModel.getTemporaryEmail()) }
+    var password by remember { mutableStateOf(profileViewModel.getTemporaryPassword()) }
     var staySignedIn by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
 
@@ -72,13 +74,8 @@ fun LoggedOutScreen(profileViewModel: ProfileViewModel) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Forgot password
-        TextButton(onClick = { /* TODO: Add forgot password action */ }) {
+        TextButton(onClick = { }) {
             Text(text = "Forgot your password?", style = MaterialTheme.typography.bodySmall)
-        }
-
-        // Create Account
-        TextButton(onClick = { /* TODO: Add forgot password action */ }) {
-            Text(text = "Create Account", style = MaterialTheme.typography.bodySmall)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -97,8 +94,18 @@ fun LoggedOutScreen(profileViewModel: ProfileViewModel) {
 
         // Sign in button
         Button(
+
             onClick = {
-                profileViewModel.login(email, password)
+
+                profileViewModel.performSensitiveAction(
+                    email = email,
+                    password = password,
+                    onSuccess = { profileViewModel.login(email, password) }, // Navigate or show success message
+                    onFailure = { errorMessage ->
+                        profileViewModel.updateTemporaryCredentials(email, password)
+                        onSignInFailed(errorMessage)
+                    } // Show error feedback
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
