@@ -11,17 +11,24 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.*
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.smartreciperecommenderapp.data.repository.LoginResult
 
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 
 @Composable
-fun SignInScreen(profileViewModel: ProfileViewModel,
-                 onSignInSuccess: () -> Unit, // Callback for successful sign-in
-                 onSignInFailed: (String) -> Unit) {
-    var email by remember { mutableStateOf(profileViewModel.getTemporaryEmail()) }
-    var password by remember { mutableStateOf(profileViewModel.getTemporaryPassword()) }
+fun SignInScreen(
+    profileViewModel: ProfileViewModel,
+    onSignInSuccess: () -> Unit, // Callback for successful sign-in
+    onSignInFailed: (String) -> Unit // Callback for failed sign-in
+) {
+    // 绑定 ViewModel 的状态
+    val loginResult by profileViewModel.loginResult.observeAsState()
+    var email by remember { mutableStateOf(profileViewModel.temporaryEmail.value ?: "") }
+    var password by remember { mutableStateOf(profileViewModel.temporaryPassword.value ?: "") }
     var staySignedIn by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) } // 控制按钮加载状态
 
     Column(
         modifier = Modifier
@@ -45,6 +52,7 @@ fun SignInScreen(profileViewModel: ProfileViewModel,
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
+            placeholder = { Text("e.g., simple@example.com") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -94,25 +102,29 @@ fun SignInScreen(profileViewModel: ProfileViewModel,
 
         // Sign in button
         Button(
-
             onClick = {
-
-                profileViewModel.performSensitiveAction(
-                    email = email,
-                    password = password,
-                    onSuccess = { profileViewModel.login(email, password) }, // Navigate or show success message
-                    onFailure = { errorMessage ->
-                        profileViewModel.updateTemporaryCredentials(email, password)
-                        onSignInFailed(errorMessage)
-                    } // Show error feedback
-                )
+                isLoading = true // 开始加载
+                profileViewModel.updateTemporaryCredentials(email, password) // 更新临时凭证
+                profileViewModel.login(email, password) { error ->
+                    isLoading = false // 停止加载
+                    onSignInFailed(error) // 登录失败处理
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            enabled = !isLoading // 禁用按钮防止重复点击
         ) {
-            Text(text = "Sign In", style = MaterialTheme.typography.bodyLarge)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text(text = "Sign In", style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
+
 }

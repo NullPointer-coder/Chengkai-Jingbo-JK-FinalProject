@@ -58,13 +58,14 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
 
 
-    implementation(platform("com.google.firebase:firebase-bom:33.6.0")) // Import the Firebase BoM
-    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:33.3.0")) // Import the Firebase BoM
+    implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database-ktx")
 
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
     implementation ("com.google.android.gms:play-services-base:18.1.0")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)

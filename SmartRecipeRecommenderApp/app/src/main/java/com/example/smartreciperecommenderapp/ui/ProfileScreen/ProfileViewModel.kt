@@ -1,6 +1,7 @@
 package com.example.smartreciperecommenderapp.ui.ProfileScreen
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,88 +9,170 @@ import androidx.lifecycle.viewModelScope
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
 import com.example.smartreciperecommenderapp.data.repository.RegisterResult
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
-import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class ProfileViewModel(private val userRepository: UserRepository) : ViewModel() {
 
-    var temporaryEmail = MutableLiveData<String>("")
-    var temporaryPassword = MutableLiveData<String>("")
+    // Temporary credentials for registration/login
+    private val _temporaryEmail = MutableLiveData("")
+    val temporaryEmail: LiveData<String> get() = _temporaryEmail
 
+    private val _temporaryPassword = MutableLiveData("")
+    val temporaryPassword: LiveData<String> get() = _temporaryPassword
+
+    // Login status and results
     private val _isLoggedIn = MutableLiveData(false)
     val isLoggedIn: LiveData<Boolean> get() = _isLoggedIn
+
+    private val _isEmailVerified = MutableLiveData(false)
+    val isEmailVerified: LiveData<Boolean> get() = _isEmailVerified
 
     private val _loginResult = MutableLiveData<LoginResult?>()
     val loginResult: LiveData<LoginResult?> get() = _loginResult
 
-    val userName = MutableLiveData<String>("")
+    // User information
+    val userName = MutableLiveData("")
     val userAvatarUrl = MutableLiveData<String?>(null)
 
+    // Navigation handlers
     var navigateToMyFavorite: () -> Unit = {}
     var navigateToFavoriteCuisines: () -> Unit = {}
     var navigateToSettings: () -> Unit = {}
 
     init {
-        // 初始化时检查登录状态
-        _isLoggedIn.value = userRepository.isUserLoggedIn()
-        if (_isLoggedIn.value == true) {
-            fetchUserDetails() // Load user details if logged in
-        }
+        checkLoginStatus()
     }
 
-    fun getTemporaryEmail(): String {
-        return temporaryEmail.value ?: ""
-    }
-
-    // Function to get the current temporary password
-    fun getTemporaryPassword(): String {
-        return temporaryPassword.value ?: ""
-    }
-
-    fun getUserName(): String {
-        return userName.value ?: ""
-    }
-
-    fun updateUserName(tempUserName: String) {
-        userName.value = tempUserName
-    }
-    fun updateTemporaryCredentials(email: String, password: String) {
-        temporaryEmail.value = email
-        temporaryPassword.value = password
-    }
-
-    fun login(email: String, password: String) {
+    /** Check login and email verification status on initialization. */
+    private fun checkLoginStatus() {
         viewModelScope.launch {
-            val result = userRepository.loginUser(email, password)
-            println("result111111:$result")
-            _loginResult.value = result
-            if (result is LoginResult.Success) {
-                _isLoggedIn.value = true
-            }
-        }
-    }
+            val isLoggedIn = userRepository.isUserLoggedIn()
+            _isLoggedIn.value = isLoggedIn
 
-    fun registerUser(email: String, password: String, username: String, onFailure: (String) -> Unit) {
-        viewModelScope.launch {
-            Log.d("ProfileViewModel", "registerUser called with email=$email, password=$password, username=$username")
-            when (val result = userRepository.registerUser(email, password, username)) {
-                is RegisterResult.Success -> {
-                    Log.d("ProfileViewModel", "User registered successfully!")
+            if (isLoggedIn) {
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                checkEmailVerificationStatus(currentUser)
+                if (_isEmailVerified.value == true) {
                     fetchUserDetails()
-                }
-                is RegisterResult.Failure -> {
-                    Log.d("ProfileViewModel", "User registration failed: ${result.errorMessage}")
-                    // Pass a simplified error message to the UI
-                    onFailure(result.errorMessage.split(":").firstOrNull() ?: "Registration failed")
+                } else {
+                    _isLoggedIn.value = false // Block login if email is not verified
                 }
             }
         }
     }
 
+    fun checkEmailVerification() {
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.let {
+            viewModelScope.launch {
+                try {
+                    it.reload().await() // 刷新用户信息
+                    _isEmailVerified.value = it.isEmailVerified // 更新验证状态
+                } catch (e: Exception) {
+                    _isEmailVerified.value = false // 处理异常
+                    println("Error checking email verification: ${e.message}")
+                }
+            }
+        } ?: run {
+            _isEmailVerified.value = false // 如果用户为 null，则设置为未验证
+        }
+    }
 
 
+    /** Check the current user's email verification status. */
+    private suspend fun checkEmailVerificationStatus(user: FirebaseUser?) {
+        try {
+            if (user != null) {
+                user.reload().await() // 刷新用户信息
+                _isEmailVerified.value = user.isEmailVerified // 更新验证状态
+            } else {
+                _isEmailVerified.value = false // 如果用户为 null，则默认未验证
+            }
+        } catch (e: Exception) {
+            // 捕获异常并打印日志
+            println("Error checking email verification status: ${e.message}")
+            _isEmailVerified.value = false // 如果发生异常，安全地设置为未验证
+        }
+    }
+
+    /** Update temporary credentials for the session. */
+    fun updateTemporaryCredentials(email: String, password: String) {
+        _temporaryEmail.value = email
+        _temporaryPassword.value = password
+    }
+
+    /** Perform user login. */
+    fun login(email: String, password: String, onFailure: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = userRepository.loginUser(email, password)
+                _loginResult.value = result
+
+                if (result is LoginResult.Success) {
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    checkEmailVerificationStatus(currentUser)
+
+                    if (_isEmailVerified.value == true) {
+                        _isLoggedIn.value = true
+                    } else {
+                        onFailure("Email not verified. Please verify your email.")
+                        _isLoggedIn.value = false
+                    }
+                } else if (result is LoginResult.Error) {
+                    onFailure(result.errorMessage)
+                }
+            } catch (e: Exception) {
+                onFailure("An unexpected error occurred: ${e.message}")
+            }
+        }
+    }
+
+    /** Resend email verification. */
+    fun resendVerificationEmail(onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.sendEmailVerification()?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                onSuccess()
+            } else {
+                val errorMessage = task.exception?.message ?: "Failed to resend email."
+                onFailure(errorMessage)
+            }
+        }
+    }
+
+    /** Register a new user. */
+    fun registerUser(
+        email: String,
+        password: String,
+        username: String,
+        onEmailVerificationPending: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val result = userRepository.registerUser(email, password, username)
+                if (result is RegisterResult.Success) {
+                    _isEmailVerified.value = result.isEmailVerified
+
+                    if (result.isEmailVerified) {
+                        _isLoggedIn.value = true
+                    } else {
+                        onEmailVerificationPending()
+                        _isLoggedIn.value = false
+                    }
+                } else if (result is RegisterResult.Failure) {
+                    onFailure(result.errorMessage)
+                }
+            } catch (e: Exception) {
+                onFailure("An unexpected error occurred: ${e.message}")
+            }
+        }
+    }
+
+    /** Fetch user details. */
     private fun fetchUserDetails() {
         viewModelScope.launch {
             val user = userRepository.getCurrentUser()
@@ -98,46 +181,18 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
         }
     }
 
-    fun performSensitiveAction(
-        email: String,
-        password: String,
-        onSuccess: () -> Unit,
-        onFailure: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                // Reauthenticate the user
-                val reauthenticated = userRepository.refreshSessionIfNeeded(email, password)
-                val currentUser = userRepository.getCurrentUser() // Fetch user after reauthentication
-                if (reauthenticated && currentUser != null) {
-                    onSuccess()
-                } else {
-                    onFailure("Re-authentication failed or user does not exist.")
-                }
-
-            } catch (e: Exception) {
-                // Log the error and provide user feedback
-                println("Re-authentication exception: ${e.message}")
-                onFailure("An error occurred during re-authentication: ${e.message}")
-            }
-        }
-    }
-
-    fun updateLoginResult(result: LoginResult) {
-        _loginResult.value = result
-    }
-
+    /** Reset login result. */
     fun resetLoginResult() {
         _loginResult.value = null
     }
 
-
+    /** Logout the user. */
     fun logout() {
         userRepository.logoutUser()
         _isLoggedIn.value = false
     }
 
-
+    /** Set navigation handlers for screens. */
     fun setNavigationHandlers(
         onMyFavorite: () -> Unit,
         onFavoriteCuisines: () -> Unit,
@@ -148,5 +203,7 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
         navigateToSettings = onSettings
     }
 
-
+    fun updateUserName(newUserName: String) {
+        userName.value = newUserName
+    }
 }

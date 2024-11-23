@@ -1,16 +1,10 @@
 package com.example.smartreciperecommenderapp.ui.ProfileScreen
 
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.*
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import androidx.navigation.compose.rememberNavController
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
@@ -21,96 +15,112 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.myfavorite.MyFavor
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.registerUsername.RegisterUsernameScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.settingsScreen.SettingsScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.signin.SignInScreen
-import kotlin.math.log
+
 
 @Composable
 fun ProfileScreen(profileViewModel: ProfileViewModel) {
-    val navController = rememberNavController() // Create NavHostController
+    val navController = rememberNavController() // 创建 NavController
     val loginResult by profileViewModel.loginResult.observeAsState()
+    val email by profileViewModel.temporaryEmail.observeAsState("")
+    val password by profileViewModel.temporaryPassword.observeAsState("")
+    val isEmailVerified by profileViewModel.isEmailVerified.observeAsState(false)
 
+    // 状态管理
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // 打印导航信息用于调试
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect { backStackEntry ->
-            // Log the current route
             println("Current route: ${backStackEntry.destination.route}")
-
-            // Log the routes in the navigation hierarchy
-            val hierarchyRoutes = backStackEntry.destination.hierarchy.mapNotNull { it.route }
-            println("Hierarchy: $hierarchyRoutes")
         }
     }
 
+    // 处理登录结果变化
+    LaunchedEffect(loginResult) {
+        when (loginResult) {
+            is LoginResult.Success -> {
+                profileViewModel.checkEmailVerification()
+                profileViewModel.resetLoginResult()
+            }
+            is LoginResult.Error -> {
+                errorMessage = (loginResult as LoginResult.Error).errorMessage
+                profileViewModel.resetLoginResult()
+            }
+            LoginResult.UserNotFound -> {
+                errorMessage = "User not found. Redirecting to registration."
+                navController.navigate("registerUsername/$email/$password") {
+                    popUpTo("signin") { inclusive = true }
+                }
+                profileViewModel.resetLoginResult()
+            }
+            null -> {}
+        }
+    }
 
+    // 显示错误消息
+    val context = LocalContext.current
+    val displayedMessages = remember { mutableSetOf<String>() }
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            if (!displayedMessages.contains(it)) {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                displayedMessages.add(it) // 避免重复显示同样的消息
+            }
+        }
+    }
 
-    // Set up navigation callbacks in ProfileViewModel
+    LaunchedEffect(isEmailVerified) {
+        if (isEmailVerified) {
+            navController.navigate("loggedin") {
+                popUpTo("signin") { inclusive = true }
+            }
+        }
+    }
+
+    // 设置导航回调
     profileViewModel.setNavigationHandlers(
         onMyFavorite = { navController.navigate("my_favorite") },
         onFavoriteCuisines = { navController.navigate("favorite_cuisines") },
         onSettings = { navController.navigate("settings") }
     )
 
+    // 导航主机
     NavHost(
         navController = navController,
-        startDestination = "loading" // Temporary loading screen to decide start destination
+        startDestination = "loading"
     ) {
-        // Loading Screen
         composable("loading") {
             LoadingScreen(profileViewModel = profileViewModel, navController = navController)
         }
 
-        // Sign In Screen
         composable("signin") {
             SignInScreen(
                 profileViewModel = profileViewModel,
-                onSignInSuccess = { navController.navigate("loggedin") }, // Navigate to logged-in screen
-                onSignInFailed = {errorMessage ->
-                    if (profileViewModel.loginResult.value == LoginResult.UserNotFound) {
-                        profileViewModel.updateLoginResult(LoginResult.UserNotFound)
-                    } else {
-                        // 处理其他错误
-                        Log.d("SignInScreen", "Error: $errorMessage")
-                    }
+                onSignInSuccess = {
+                    profileViewModel.checkEmailVerification()
+                },
+                onSignInFailed = { error ->
+                    errorMessage = error
                 }
             )
-
-            // Monitor login results and navigate accordingly
-            LaunchedEffect(loginResult) {
-                loginResult?.let {
-                    print("loginResult: $loginResult")
-                    when (it) {
-                        is LoginResult.UserNotFound -> {
-                            // Navigate to username registration screen
-                            navController.navigate("registerUsername/{email}/{password}")
-                        }
-                        is LoginResult.Success -> {
-                            // Navigate to logged-in screen
-                            navController.navigate("loggedin") {
-                                popUpTo("signin") { inclusive = true }
-                            }
-                        }
-                        is LoginResult.Error -> {
-                            // Handle error (e.g., display a Snackbar)
-                            println(it.message)
-                        }
-                    }
-                }
-            }
         }
 
-        // Register Username Screen
-        composable("registerUsername/{email}/{password}") {
-            val email by profileViewModel.temporaryEmail.observeAsState("")
-            val password by profileViewModel.temporaryPassword.observeAsState("")
-            var errorMessage by remember { mutableStateOf<String?>(null) }
+        composable("registerUsername/{email}/{password}") { backStackEntry ->
+            val emailArg = backStackEntry.arguments?.getString("email") ?: ""
+            val passwordArg = backStackEntry.arguments?.getString("password") ?: ""
 
             RegisterUsernameScreen(
-                profileViewModel= profileViewModel,
+                profileViewModel = profileViewModel,
                 onUsernameEntered = { username ->
                     profileViewModel.registerUser(
-                        email = email,
-                        password = password,
+                        email = emailArg,
+                        password = passwordArg,
                         username = username,
+                        onEmailVerificationPending = {
+                            errorMessage = "Check your email for verification."
+                        },
                         onFailure = { error ->
-                            errorMessage = error // Update the error message in ProfileScreen
+                            errorMessage = error
                         }
                     )
                     navController.navigate("signin") {
@@ -118,45 +128,38 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                     }
                 },
                 navController = navController,
-                onError = { error -> errorMessage = error }
+                onError = { error ->
+                    errorMessage = error
+                }
             )
+        }
 
-            errorMessage?.let {
-                Toast.makeText(
-                    LocalContext.current,
-                    it,
-                    Toast.LENGTH_SHORT
-                ).show()
+        composable("loggedin") {
+            if (isEmailVerified) {
+                LoggedInScreen(
+                    profileViewModel = profileViewModel,
+                    onMyFavoriteClick = profileViewModel.navigateToMyFavorite,
+                    onFavoriteCuisinesClick = profileViewModel.navigateToFavoriteCuisines,
+                    onSettingsClick = profileViewModel.navigateToSettings
+                )
+            } else {
+                errorMessage = "Access denied. Please verify your email first."
+                navController.navigate("signin") {
+                    popUpTo("loggedin") { inclusive = true }
+                }
             }
         }
 
-        // Logged In Screen
-        composable("loggedin") {
-            LoggedInScreen(
-                profileViewModel = profileViewModel,
-                onMyFavoriteClick = profileViewModel.navigateToMyFavorite,
-                onFavoriteCuisinesClick = profileViewModel.navigateToFavoriteCuisines,
-                onSettingsClick = profileViewModel.navigateToSettings
-            )
-        }
-
-        // My Favorite Screen
         composable("my_favorite") {
             MyFavoriteScreen()
         }
 
-        // Favorite Cuisines Screen
         composable("favorite_cuisines") {
             FavoriteCuisinesScreen()
         }
 
-        // Settings Screen
         composable("settings") {
             SettingsScreen()
         }
-
     }
 }
-
-
-
