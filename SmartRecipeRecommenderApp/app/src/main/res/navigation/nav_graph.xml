@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/homeScreen">
+
+    <fragment
+        android:id="@+id/homeScreen"
+        android:name="com.example.smartreciperecommenderapp.ui.homeScreen.HomeFragment"
+        android:label="Home Screen">
+        <action
+            android:id="@+id/action_home_to_ingredient"
+            app:destination="@id/ingredientScreen" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/ingredientScreen"
+        android:name="com.example.smartreciperecommenderapp.ui.ingredientScreen.IngredientFragment"
+        android:label="Ingredient Screen">
+        <action
+            android:id="@+id/action_ingredient_to_profile"
+            app:destination="@id/profileScreen" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileScreen"
+        android:name="com.example.smartreciperecommenderapp.ui.profileScreen.ProfileFragment"
+        android:label="Profile Screen" />
+</navigation>

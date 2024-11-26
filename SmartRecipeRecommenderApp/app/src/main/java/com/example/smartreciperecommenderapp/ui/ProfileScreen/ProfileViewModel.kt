@@ -172,14 +172,25 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
         }
     }
 
-    /** Fetch user details. */
-    private fun fetchUserDetails() {
+    /** Fetch user details after login and email verification. */
+    fun fetchUserDetails(onDetailsFetched: (() -> Unit)? = null) {
         viewModelScope.launch {
-            val user = userRepository.getCurrentUser()
-            userName.value = user?.username ?: ""
-            userAvatarUrl.value = user?.avatarUrl
+            try {
+                val user = FirebaseAuth.getInstance().currentUser
+
+                // 确保用户不为 null 并提取 displayName
+                userName.value = user?.displayName ?: "Guest"
+                userAvatarUrl.value = user?.photoUrl?.toString() // 如果没有头像 URL，这里可能是 null
+
+                onDetailsFetched?.invoke() // 通知详情加载完成
+            } catch (e: Exception) {
+                userName.value = "Guest"
+                userAvatarUrl.value = null
+            }
         }
     }
+
+
 
     /** Reset login result. */
     fun resetLoginResult() {

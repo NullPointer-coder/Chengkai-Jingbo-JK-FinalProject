@@ -1,7 +1,7 @@
 package com.example.smartreciperecommenderapp.ui.ProfileScreen.loggedin
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -9,8 +9,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.*
+import androidx.compose.ui.text.font.*
+import androidx.compose.ui.unit.*
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,17 +22,30 @@ fun LoggedInScreen(
     onFavoriteCuisinesClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val userName = profileViewModel.userName.observeAsState("Guest").value
+    val displayName = profileViewModel.userName.observeAsState("Guest").value
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = userName, style = MaterialTheme.typography.titleLarge) },
-                actions = {
-                    IconButton(onClick = {profileViewModel.logout()}) {
-                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = displayName,
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.weight(1f),
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Settings"
+                            )
+                        }
                     }
-                }
+                },
             )
         },
         content = { innerPadding ->
@@ -77,10 +91,11 @@ fun ActionRow(icon: ImageVector, text: String, onClick: () -> Unit) {
             tint = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.width(8.dp))
-        ClickableText(
-            text = AnnotatedString(text),
-            onClick = { onClick() },
-            style = MaterialTheme.typography.bodyLarge
+        Text(
+            text = AnnotatedString(text).toString(),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.clickable { onClick() }
         )
     }
 }
+

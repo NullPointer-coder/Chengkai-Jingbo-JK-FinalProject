@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
@@ -25,11 +26,38 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SmartRecipeRecommenderAppTheme {
-
+                val navController = rememberNavController()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ProfileScreen(
-                        profileViewModel = viewModel(factory = ProfileViewModelFactory(userRepository))
+                        profileViewModel = viewModel(factory = ProfileViewModelFactory(userRepository)),
+                        navController = navController
+
+                        /*
+                         val navController = rememberNavController()
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = { BottomNavigationBar(navController) } // 添加底部导航栏
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = NavRoutes.HOME // 设置默认页面
+                    ) {
+                        composable(NavRoutes.HOME) {
+                            HomeScreen(navController)
+                        }
+
+                        composable(NavRoutes.INGREDIENTS) {
+                            IngredientScreen(navController)
+                        }
+
+                        composable(NavRoutes.PROFILE) {
+                            ProfileScreen(
+                                profileViewModel = viewModel(factory = ProfileViewModelFactory(userRepository)),
+                                navController = navController
+                            )
+                        * */
                     )
                 }
             }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import androidx.navigation.compose.rememberNavController
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
@@ -18,21 +19,21 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.signin.SignInScree
 
 
 @Composable
-fun ProfileScreen(profileViewModel: ProfileViewModel) {
-    val navController = rememberNavController() // 创建 NavController
+fun ProfileScreen(profileViewModel: ProfileViewModel, navController: NavHostController) {
     val loginResult by profileViewModel.loginResult.observeAsState()
-    val email by profileViewModel.temporaryEmail.observeAsState("")
-    val password by profileViewModel.temporaryPassword.observeAsState("")
     val isEmailVerified by profileViewModel.isEmailVerified.observeAsState(false)
 
-    // 状态管理
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // 打印导航信息用于调试
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect { backStackEntry ->
             println("Current route: ${backStackEntry.destination.route}")
         }
+    }
+
+    LaunchedEffect(navController.currentBackStackEntry) {
+        errorMessage = null
     }
 
     // 处理登录结果变化
@@ -48,8 +49,8 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
             }
             LoginResult.UserNotFound -> {
                 errorMessage = "User not found. Redirecting to registration."
-                navController.navigate("registerUsername/$email/$password") {
-                    popUpTo("signin") { inclusive = true }
+                navController.navigate(ProfileRoutes.REGISTER_USERNAME) {
+                    popUpTo(ProfileRoutes.SIGN_IN) { inclusive = true }
                 }
                 profileViewModel.resetLoginResult()
             }
@@ -71,29 +72,31 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
 
     LaunchedEffect(isEmailVerified) {
         if (isEmailVerified) {
-            navController.navigate("loggedin") {
-                popUpTo("signin") { inclusive = true }
+            profileViewModel.fetchUserDetails {
+                navController.navigate(ProfileRoutes.LOGGED_IN) {
+                    popUpTo(ProfileRoutes.SIGN_IN) { inclusive = true }
+                }
             }
         }
     }
 
     // 设置导航回调
     profileViewModel.setNavigationHandlers(
-        onMyFavorite = { navController.navigate("my_favorite") },
-        onFavoriteCuisines = { navController.navigate("favorite_cuisines") },
-        onSettings = { navController.navigate("settings") }
+        onMyFavorite = { navController.navigate(ProfileRoutes.MY_FAVORITE) },
+        onFavoriteCuisines = { navController.navigate(ProfileRoutes.FAVORITE_CUISINES) },
+        onSettings = { navController.navigate(ProfileRoutes.SETTINGS) }
     )
 
     // 导航主机
     NavHost(
         navController = navController,
-        startDestination = "loading"
+        startDestination = ProfileRoutes.LOADING
     ) {
-        composable("loading") {
+        composable(ProfileRoutes.LOADING) {
             LoadingScreen(profileViewModel = profileViewModel, navController = navController)
         }
 
-        composable("signin") {
+        composable(ProfileRoutes.SIGN_IN) {
             SignInScreen(
                 profileViewModel = profileViewModel,
                 onSignInSuccess = {
@@ -105,7 +108,7 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
             )
         }
 
-        composable("registerUsername/{email}/{password}") { backStackEntry ->
+        composable(ProfileRoutes.REGISTER_USERNAME) { backStackEntry ->
             val emailArg = backStackEntry.arguments?.getString("email") ?: ""
             val passwordArg = backStackEntry.arguments?.getString("password") ?: ""
 
@@ -123,7 +126,7 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                             errorMessage = error
                         }
                     )
-                    navController.navigate("signin") {
+                    navController.navigate(ProfileRoutes.SIGN_IN) {
                         popUpTo("registerUsername") { inclusive = true }
                     }
                 },
@@ -134,7 +137,7 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
             )
         }
 
-        composable("loggedin") {
+        composable(ProfileRoutes .LOGGED_IN) {
             if (isEmailVerified) {
                 LoggedInScreen(
                     profileViewModel = profileViewModel,
@@ -144,22 +147,39 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                 )
             } else {
                 errorMessage = "Access denied. Please verify your email first."
-                navController.navigate("signin") {
-                    popUpTo("loggedin") { inclusive = true }
+                navController.navigate(ProfileRoutes.SIGN_IN) {
+                    popUpTo(ProfileRoutes.LOGGED_IN) { inclusive = true }
                 }
             }
         }
 
-        composable("my_favorite") {
-            MyFavoriteScreen()
+        composable(ProfileRoutes.MY_FAVORITE) {
+            MyFavoriteScreen(
+                profileViewModel = profileViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
 
-        composable("favorite_cuisines") {
-            FavoriteCuisinesScreen()
+        composable(ProfileRoutes.FAVORITE_CUISINES) {
+            FavoriteCuisinesScreen(
+                profileViewModel = profileViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
 
-        composable("settings") {
-            SettingsScreen()
+        composable(ProfileRoutes.SETTINGS) {
+            SettingsScreen(
+                profileViewModel = profileViewModel, // 传递 ViewModel
+                onBack = { navController.popBackStack() }, // 返回上一页
+                onEditAccount = { /* Navigate to edit account screen */ },
+                onLogout = {
+                    profileViewModel.logout()
+                    navController.navigate(ProfileRoutes.SIGN_IN) { // 返回登录页面
+                        popUpTo(ProfileRoutes.SETTINGS) { inclusive = true }
+                    }
+                }
+            )
         }
+
     }
 }
