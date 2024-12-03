@@ -71,6 +71,20 @@ dependencies {
     implementation ("androidx.navigation:navigation-fragment-ktx:2.7.3")
     implementation ("androidx.navigation:navigation-ui-ktx:2.7.3")
 
+    // CameraX
+    implementation ("androidx.camera:camera-core:1.4.0")
+    implementation ("androidx.camera:camera-camera2:1.4.0")
+    implementation ("androidx.camera:camera-lifecycle:1.4.0")
+    implementation ("androidx.camera:camera-view:1.4.0")
+
+    // Google ML Kit
+    implementation ("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
+
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Compose
+
+    implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
     
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
