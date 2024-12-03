@@ -201,6 +201,8 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
     fun logout() {
         userRepository.logoutUser()
         _isLoggedIn.value = false
+        _isEmailVerified.value = false // Reset email verification status
+        resetLoginResult() // Clear login result
     }
 
     /** Set navigation handlers for screens. */

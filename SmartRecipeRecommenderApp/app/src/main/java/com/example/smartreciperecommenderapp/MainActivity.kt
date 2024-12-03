@@ -10,10 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-
+import androidx.lifecycle.ViewModelProvider
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
 import com.example.smartreciperecommenderapp.ui.BottomNavigationBar
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
+import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
 import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 import com.example.smartreciperecommenderapp.ui.theme.SmartRecipeRecommenderAppTheme
@@ -24,6 +24,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val userRepository = UserRepository()
+        val profileViewModel: ProfileViewModel = ViewModelProvider(
+            this,
+            ProfileViewModelFactory(userRepository)
+        )[ProfileViewModel::class.java]
         enableEdgeToEdge()
         setContent {
             SmartRecipeRecommenderAppTheme {
@@ -33,7 +37,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = { BottomNavigationBar(navController) }
                 ) { innerPadding ->
-                    NavGraph(navController)
+                    NavGraph(
+                        navController = navController,
+                        profileViewModel = profileViewModel
+                    )
 
 
                         /*
