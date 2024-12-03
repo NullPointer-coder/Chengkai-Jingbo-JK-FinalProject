@@ -12,9 +12,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
+import com.example.smartreciperecommenderapp.ui.BottomNavigationBar
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
-
+import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 import com.example.smartreciperecommenderapp.ui.theme.SmartRecipeRecommenderAppTheme
 
 
@@ -28,10 +29,12 @@ class MainActivity : ComponentActivity() {
             SmartRecipeRecommenderAppTheme {
                 val navController = rememberNavController()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ProfileScreen(
-                        profileViewModel = viewModel(factory = ProfileViewModelFactory(userRepository)),
-                        navController = navController
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = { BottomNavigationBar(navController) }
+                ) { innerPadding ->
+                    NavGraph(navController)
+
 
                         /*
                          val navController = rememberNavController()
@@ -58,7 +61,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         * */
-                    )
+
                 }
             }
         }

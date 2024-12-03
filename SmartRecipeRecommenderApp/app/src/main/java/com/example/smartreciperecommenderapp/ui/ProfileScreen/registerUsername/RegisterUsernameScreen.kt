@@ -3,6 +3,7 @@ package com.example.smartreciperecommenderapp.ui.ProfileScreen.registerUsername
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,7 +22,8 @@ fun RegisterUsernameScreen(
     profileViewModel: ProfileViewModel,
     onUsernameEntered: (String) -> Unit,
     navController: NavController,
-    onError: (String) -> Unit
+    onError: (String) -> Unit,
+    onResetNavigatedToSignIn: () -> Unit
 ) {
     // 使用 LiveData.observeAsState 获取用户名
     val username by profileViewModel.userName.observeAsState("")
@@ -43,6 +45,7 @@ fun RegisterUsernameScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         profileViewModel.resetLoginResult() // 重置登录结果
+                        onResetNavigatedToSignIn()
                         val success = navController.popBackStack()
                         if (!success) {
                             navController.navigate("signin") {
@@ -50,7 +53,7 @@ fun RegisterUsernameScreen(
                             }
                         }
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )

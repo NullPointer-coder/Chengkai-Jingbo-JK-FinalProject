@@ -2,37 +2,40 @@ package com.example.smartreciperecommenderapp.ui
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.smartreciperecommenderapp.ui.navigation.Screen
+
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController) {
-    val routes = listOf(
-        Triple(NavRoutes.HOME, "Home", NavRoutes.icons[NavRoutes.HOME]),
-        Triple(NavRoutes.INGREDIENTS, "Ingredients", NavRoutes.icons[NavRoutes.INGREDIENTS]),
-        Triple(NavRoutes.PROFILE, "Profile", NavRoutes.icons[NavRoutes.PROFILE])
+fun BottomNavigationBar(navController: NavController) {
+    val items = listOf(
+        Screen.Home,
+        Screen.Ingredient,
+        Screen.ProfileScreen
     )
 
     NavigationBar {
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
-        routes.forEach { (route, label, icon) ->
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        items.forEach { screen ->
             NavigationBarItem(
-                selected = currentRoute == route,
+                icon = { Icon(imageVector = screen.icon, contentDescription = screen.route) },
+                label = { Text(screen.route) },
+                selected = currentRoute == screen.route,
                 onClick = {
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                    if (currentRoute != screen.route) {
+                        navController.navigate(screen.route) {
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                },
-                icon = {
-                    icon?.let {
-                        Icon(imageVector = it, contentDescription = null)
-                    }
-                },
-                label = { Text(label) }
+                }
             )
+
         }
     }
 }

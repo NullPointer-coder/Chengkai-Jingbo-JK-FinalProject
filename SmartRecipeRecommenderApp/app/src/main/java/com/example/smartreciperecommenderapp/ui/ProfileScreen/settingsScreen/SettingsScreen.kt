@@ -24,7 +24,8 @@ fun SettingsScreen(
     profileViewModel: ProfileViewModel,
     onBack: () -> Unit,
     onEditAccount: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onResetNavigatedToLoggedIn: () -> Unit
 ) {
     val userName = profileViewModel.userName.observeAsState("Guest").value
     val userAvatarUrl = profileViewModel.userAvatarUrl.observeAsState(null).value
@@ -107,7 +108,10 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.error
                 ),
-                modifier = Modifier.clickable { onLogout() }
+                modifier = Modifier.clickable {
+                    onResetNavigatedToLoggedIn()
+                    onLogout()
+                }
             )
         }
     }
