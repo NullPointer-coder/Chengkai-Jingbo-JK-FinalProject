@@ -14,20 +14,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
+//import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
 
 import com.example.smartreciperecommenderapp.ui.*
 import androidx.navigation.NavController
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.BarcodeScannerScreen
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientScreen
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.signin.SignInScreen
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeScreen
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +46,7 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.settingsScreen.Set
 
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : Screen("Home", Icons.Filled.Home)
-    object ProfileScreen : Screen("Account", Icons.Filled.PersonOutline)
+    object Account : Screen("Account", Icons.Filled.PersonOutline)
     object Ingredient : Screen("Ingredient", Icons.Filled.ShoppingCart)
     object RecipeDetail : Screen("recipe_detail", Icons.Filled.Home) // Example
     object BarcodeScanner : Screen("barcode_scanner", Icons.Filled.Home) // Example
@@ -59,13 +59,15 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 }
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewModel) {
 
+    /*
     val profileViewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory(UserRepository())
     )
 
-    val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(initial = false)
+     */
+
     val loginResult by profileViewModel.loginResult.observeAsState()
     val isEmailVerified by profileViewModel.isEmailVerified.observeAsState(false)
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -88,6 +90,7 @@ fun NavGraph(navController: NavHostController) {
     }
 
     // 处理登录结果变化
+    /*
     LaunchedEffect(loginResult) {
         when (loginResult) {
             is LoginResult.Success -> {
@@ -111,6 +114,8 @@ fun NavGraph(navController: NavHostController) {
             null -> Unit
         }
     }
+
+     */
 
     // 处理邮箱验证状态
     LaunchedEffect(isEmailVerified) {
@@ -154,24 +159,29 @@ fun NavGraph(navController: NavHostController) {
                 }
             )
         }
-
-
          */
+
+        /*
         composable(ProfileRoutes.LOADING) {
             LoadingScreen(profileViewModel = profileViewModel, navController = navController)
         }
 
+         */
+
+
+
+        /*
         composable(ProfileRoutes.SIGN_IN) {
             SignInScreen(
                 profileViewModel = profileViewModel,
                 onSignInSuccess = {
                     profileViewModel.checkEmailVerification()
                 },
-                onSignInFailed = { error ->
-                    errorMessage = error
-                }
+                onSignInFailed = { error -> errorMessage = error }
             )
         }
+
+         */
 
         composable(ProfileRoutes.REGISTER_USERNAME) {
             RegisterUsernameScreen(
@@ -184,9 +194,7 @@ fun NavGraph(navController: NavHostController) {
                         onEmailVerificationPending = {
                             errorMessage = "Check your email for verification."
                         },
-                        onFailure = { error ->
-                            errorMessage = error
-                        }
+                        onFailure = { error -> errorMessage = error }
                     )
                     navController.navigate(ProfileRoutes.SIGN_IN) {
                         popUpTo("registerUsername") { inclusive = true }
@@ -200,6 +208,7 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+        /*
         composable(ProfileRoutes.LOGGED_IN) {
             if (isEmailVerified) {
                 LoggedInScreen(
@@ -218,6 +227,8 @@ fun NavGraph(navController: NavHostController) {
                 }
             }
         }
+
+         */
 
         composable(ProfileRoutes.MY_FAVORITE) {
             MyFavoriteScreen(
@@ -240,8 +251,8 @@ fun NavGraph(navController: NavHostController) {
                 onEditAccount = { /* Navigate to edit account screen */ },
                 onLogout = {
                     profileViewModel.logout()
-                    navController.navigate(ProfileRoutes.SIGN_IN) {
-                        popUpTo(ProfileRoutes.SETTINGS) { inclusive = true }
+                    navController.navigate(Screen.Account.route) {
+                        popUpTo(Screen.Account.route) { inclusive = true }
                     }
                 },
                 onResetNavigatedToLoggedIn = { hasNavigatedToLoggedIn = false }
@@ -250,6 +261,32 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Screen.Home.route) { HomeScreen(navController) }
         composable(Screen.Ingredient.route) { IngredientScreen(navController) }
+        // composable(Screen.Account.route) { LoadingScreen(profileViewModel = profileViewModel, navController = navController)}
+
+        // Account Screen (SignIn or Profile)
+        composable(Screen.Account.route) {
+            val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
+
+            if (isLoggedIn) {
+                LoggedInScreen(
+                    profileViewModel = profileViewModel,
+                    onMyFavoriteClick = { navController.navigate(ProfileRoutes.MY_FAVORITE) },
+                    onFavoriteCuisinesClick = { navController.navigate(ProfileRoutes.FAVORITE_CUISINES) },
+                    onSettingsClick = { navController.navigate(ProfileRoutes.SETTINGS) }
+                )
+            } else {
+                SignInScreen(
+                    profileViewModel = profileViewModel,
+                    onSignInSuccess = {
+                        navController.navigate(Screen.Account.route) {
+                            popUpTo(Screen.SignIn.route) { inclusive = true }
+                        }
+                    },
+                    onSignInFailed = { error -> errorMessage = error }
+                )
+            }
+        }
+
         // composable(Screen.RecipeDetail.route) { RecipeDetailScreen(navController) }
         // composable(Screen.BarcodeScanner.route) { BarcodeScannerScreen(navController) }
     }

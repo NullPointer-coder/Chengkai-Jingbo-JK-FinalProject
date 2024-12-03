@@ -10,6 +10,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
+import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
+
 
 class ProfileFragment : Fragment() {
 
@@ -32,7 +34,7 @@ class ProfileFragment : Fragment() {
 
                 // 提供 ProfileScreen 所需的 ViewModel 和导航控制器
                 CompositionLocalProvider {
-                    ProfileScreen(
+                    NavGraph(
                         profileViewModel = profileViewModel,
                         navController = navController
                     )
