@@ -19,7 +19,6 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFa
 
 import com.example.smartreciperecommenderapp.ui.*
 import androidx.navigation.NavController
-import com.example.smartreciperecommenderapp.ui.IngredientScreen.BarcodeScannerScreen
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.signin.SignInScreen

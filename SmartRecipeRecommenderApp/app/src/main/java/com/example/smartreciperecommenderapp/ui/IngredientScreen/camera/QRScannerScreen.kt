@@ -13,9 +13,10 @@ import com.google.accompanist.permissions.*
 @Composable
 fun QRScannerScreen(
     viewModel: QRScannerViewModel = viewModel(),
-    onQRCodeScanned: (String) -> Unit
 ) {
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
+    val productDetails by viewModel.productDetails.collectAsState()
+    val scanResult by viewModel.scanResult.collectAsState()
 
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
@@ -25,17 +26,37 @@ fun QRScannerScreen(
 
     when {
         cameraPermissionState.status.isGranted -> {
-            Box(modifier = Modifier.fillMaxSize()) {
-                CameraPreview(
-                    lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current,
-                    onQRCodeScanned = { result ->
-                        viewModel.onScanSuccess(result)
-                        onQRCodeScanned(result)
-                    },
-                    onError = { exception ->
-                        viewModel.onScanError(exception)
+            if (scanResult == null) {
+                // 如果尚未扫描，显示相机预览
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CameraPreview(
+                        lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current,
+                        onQRCodeScanned = { result ->
+                            viewModel.onScanSuccess(result)
+                        },
+                        onError = { exception ->
+                            viewModel.onScanError(exception)
+                        }
+                    )
+                }
+            } else {
+                // 如果已扫描，显示产品详情
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Product Details:\n$productDetails",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { viewModel.resetScan() }) {
+                        Text("Scan Another")
                     }
-                )
+                }
             }
         }
         cameraPermissionState.status.shouldShowRationale -> {

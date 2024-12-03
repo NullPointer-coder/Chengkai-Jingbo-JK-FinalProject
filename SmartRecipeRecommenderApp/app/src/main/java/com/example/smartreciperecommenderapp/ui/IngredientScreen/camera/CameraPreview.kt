@@ -1,6 +1,5 @@
 package com.example.smartreciperecommenderapp.ui.IngredientScreen.camera
 
-import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -18,53 +17,51 @@ fun CameraPreview(
     onQRCodeScanned: (String) -> Unit,
     onError: (Exception) -> Unit
 ) {
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
-            val previewView = PreviewView(context)
-            Log.d("CameraX", "PreviewView initialized.")
+    var isScanning by remember { mutableStateOf(true) }
 
-            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-            cameraProviderFuture.addListener({
-                try {
-                    val cameraProvider = cameraProviderFuture.get()
-                    Log.d("CameraX", "CameraProvider initialized successfully.")
+    if (isScanning) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                val previewView = PreviewView(context)
+                val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+                cameraProviderFuture.addListener({
+                    try {
+                        val cameraProvider = cameraProviderFuture.get()
+                        val preview = androidx.camera.core.Preview.Builder()
+                            .build()
+                            .also { it.setSurfaceProvider(previewView.surfaceProvider) }
 
-                    val preview = androidx.camera.core.Preview.Builder()
-                        .build()
-                        .also { it.setSurfaceProvider(previewView.surfaceProvider) }
-
-                    val imageAnalyzer = ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST) // 实时优化
-                        .build()
-                        .also { analysis ->
-                            analysis.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
-                                MLKitUtils.processImageProxy(
-                                    imageProxy,
-                                    onSuccess = { result ->
-                                        Log.d("MLKit", "QR Code scanned: $result")
-                                        onQRCodeScanned(result)
-                                    },
-                                    onError = { exception ->
-                                        Log.e("MLKit", "Error scanning QR Code: ${exception.message}")
-                                        onError(exception)
-                                    }
-                                )
+                        val imageAnalyzer = ImageAnalysis.Builder()
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .build()
+                            .also { analysis ->
+                                analysis.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+                                    MLKitUtils.processImageProxy(
+                                        imageProxy,
+                                        onSuccess = { result ->
+                                            onQRCodeScanned(result)
+                                            isScanning = false // 停止扫描
+                                            cameraProvider.unbindAll()
+                                        },
+                                        onError = { exception ->
+                                            onError(exception)
+                                        }
+                                    )
+                                }
                             }
-                        }
 
-                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner, cameraSelector, preview, imageAnalyzer
-                    )
-                    Log.d("CameraX", "Camera successfully bound to lifecycle.")
-                } catch (exception: Exception) {
-                    Log.e("CameraX", "Failed to bind CameraX: ${exception.message}")
-                    onError(exception)
-                }
-            }, ContextCompat.getMainExecutor(context))
-            previewView
-        }
-    )
+                        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                        cameraProvider.unbindAll()
+                        cameraProvider.bindToLifecycle(
+                            lifecycleOwner, cameraSelector, preview, imageAnalyzer
+                        )
+                    } catch (exception: Exception) {
+                        onError(exception)
+                    }
+                }, ContextCompat.getMainExecutor(context))
+                previewView
+            }
+        )
+    }
 }
