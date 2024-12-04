@@ -53,12 +53,12 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.lifecycle.viewmodel.compose)
-    implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("androidx.compose.material:material-icons-extended:1.5.1")
-    implementation("com.google.android.material:material:1.9.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.5")
+    implementation("com.google.android.material:material:1.12.0")
 
 
-    implementation(platform("com.google.firebase:firebase-bom:33.3.0")) // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0")) // Import the Firebase BoM
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
@@ -66,10 +66,10 @@ dependencies {
     implementation("com.google.firebase:firebase-database-ktx")
 
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-    implementation ("com.google.android.gms:play-services-base:18.1.0")
+    implementation ("com.google.android.gms:play-services-base:18.5.0")
 
-    implementation ("androidx.navigation:navigation-fragment-ktx:2.7.3")
-    implementation ("androidx.navigation:navigation-ui-ktx:2.7.3")
+    implementation ("androidx.navigation:navigation-fragment-ktx:2.8.4")
+    implementation ("androidx.navigation:navigation-ui-ktx:2.8.4")
 
     // CameraX
     implementation ("androidx.camera:camera-core:1.4.0")
@@ -83,11 +83,11 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
     // Compose
-    implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation ("com.google.accompanist:accompanist-permissions:0.36.0")
 
     // Open Food Facts API
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.11.0")
 
 
 

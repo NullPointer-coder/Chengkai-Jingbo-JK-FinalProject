@@ -39,7 +39,7 @@ fun SignInScreen(
     ) {
         // Welcome message
         Text(
-            text = "Welcome, Sign in to get \nrecipe recommendations",
+            text = "Welcome, Sign in to get \nmore Fridgify functions",
             style = MaterialTheme.typography.headlineMedium,
             fontSize = 18.sp,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
