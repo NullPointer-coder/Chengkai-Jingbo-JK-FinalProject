@@ -64,7 +64,6 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
     val profileViewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory(UserRepository())
     )
-
      */
 
     val loginResult by profileViewModel.loginResult.observeAsState()
@@ -88,8 +87,7 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
         }
     }
 
-    // 处理登录结果变化
-    /*
+    // Handle login results dynamically
     LaunchedEffect(loginResult) {
         when (loginResult) {
             is LoginResult.Success -> {
@@ -114,7 +112,6 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
         }
     }
 
-     */
 
     // 处理邮箱验证状态
     LaunchedEffect(isEmailVerified) {
@@ -136,51 +133,12 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
     )
 
 
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
 
-
-
-        /*
-        composable(Screen.ProfileScreen.route) {
-            SignInScreen(
-                profileViewModel = profileViewModel,
-                onSignInSuccess = {
-                    // Redirect to ProfileScreen upon successful sign-in
-                    navController.navigate(Screen.ProfileScreen.route) {
-                        popUpTo(Screen.SignIn.route) { inclusive = true }
-                    }
-                },
-                onSignInFailed = { error ->
-                    // Handle sign-in failure here (e.g., show a Snackbar)
-                }
-            )
-        }
-         */
-
-        /*
-        composable(ProfileRoutes.LOADING) {
-            LoadingScreen(profileViewModel = profileViewModel, navController = navController)
-        }
-
-         */
-
-
-
-        /*
-        composable(ProfileRoutes.SIGN_IN) {
-            SignInScreen(
-                profileViewModel = profileViewModel,
-                onSignInSuccess = {
-                    profileViewModel.checkEmailVerification()
-                },
-                onSignInFailed = { error -> errorMessage = error }
-            )
-        }
-
-         */
 
         composable(ProfileRoutes.REGISTER_USERNAME) {
             RegisterUsernameScreen(
@@ -192,12 +150,13 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
                         username = username,
                         onEmailVerificationPending = {
                             errorMessage = "Check your email for verification."
+                            navController.navigate(ProfileRoutes.SIGN_IN) {
+                                popUpTo(ProfileRoutes.REGISTER_USERNAME) { inclusive = false }
+                            }
                         },
                         onFailure = { error -> errorMessage = error }
                     )
-                    navController.navigate(ProfileRoutes.SIGN_IN) {
-                        popUpTo("registerUsername") { inclusive = true }
-                    }
+                    // 123
                 },
                 navController = navController,
                 onError = { error ->
@@ -207,27 +166,7 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
             )
         }
 
-        /*
-        composable(ProfileRoutes.LOGGED_IN) {
-            if (isEmailVerified) {
-                LoggedInScreen(
-                    profileViewModel = profileViewModel,
-                    onMyFavoriteClick = profileViewModel.navigateToMyFavorite,
-                    onFavoriteCuisinesClick = profileViewModel.navigateToFavoriteCuisines,
-                    onSettingsClick = profileViewModel.navigateToSettings
-                )
-            } else {
-                if (!hasNavigatedToSignIn) {
-                    hasNavigatedToSignIn = true
-                    errorMessage = "Access denied. Please verify your email first."
-                    navController.navigate(ProfileRoutes.SIGN_IN) {
-                        popUpTo(ProfileRoutes.LOGGED_IN) { inclusive = true }
-                    }
-                }
-            }
-        }
 
-         */
 
         composable(ProfileRoutes.MY_FAVORITE) {
             MyFavoriteScreen(
@@ -265,6 +204,13 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
         // Account Screen (SignIn or Profile)
         composable(Screen.Account.route) {
             val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
+
+            // Fetch user details when logged in
+            LaunchedEffect(isLoggedIn) {
+                if (isLoggedIn) {
+                    profileViewModel.fetchUserDetails()
+                }
+            }
 
             if (isLoggedIn) {
                 LoggedInScreen(
