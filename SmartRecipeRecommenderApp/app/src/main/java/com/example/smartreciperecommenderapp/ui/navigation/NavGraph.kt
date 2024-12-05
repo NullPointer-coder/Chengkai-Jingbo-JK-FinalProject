@@ -14,7 +14,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
-//import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
 
 import com.example.smartreciperecommenderapp.ui.*
@@ -151,13 +150,12 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
                         username = username,
                         onEmailVerificationPending = {
                             errorMessage = "Check your email for verification."
-                            navController.navigate(ProfileRoutes.SIGN_IN) {
-                                popUpTo(ProfileRoutes.REGISTER_USERNAME) { inclusive = false }
-                            }
                         },
                         onFailure = { error -> errorMessage = error }
                     )
-                    // 123
+                    navController.navigate(Screen.Account.route) {
+                        popUpTo(ProfileRoutes.REGISTER_USERNAME) { inclusive = true }
+                    }
                 },
                 navController = navController,
                 onError = { error ->
