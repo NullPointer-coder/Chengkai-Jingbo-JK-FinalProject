@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "495074866441",
+    "firebase_url": "https://smartreciperecommenderapp-default-rtdb.firebaseio.com",
     "project_id": "smartreciperecommenderapp",
     "storage_bucket": "smartreciperecommenderapp.firebasestorage.app"
   },
