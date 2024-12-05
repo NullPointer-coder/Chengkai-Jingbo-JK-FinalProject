@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.Loading.LoadingScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileRoutes
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
@@ -47,7 +49,7 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
     object Account : Screen("Account", Icons.Filled.PersonOutline)
     object Ingredient : Screen("Ingredient", Icons.Filled.ShoppingCart)
     object RecipeDetail : Screen("recipe_detail", Icons.Filled.Home) // Example
-    object BarcodeScanner : Screen("barcode_scanner", Icons.Filled.Home) // Example
+    object BarcodeScanner : Screen("barcode_scanner", Icons.Filled.QrCodeScanner) // Example
     object SignIn : Screen("sign_in", Icons.Filled.PersonOutline) // Example
     object LoggedIn : Screen("logged_in", Icons.Filled.PersonOutline)
     object Settings : Screen("settings", Icons.Filled.PersonOutline)
@@ -229,6 +231,9 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
                 )
             }
         }
+
+        composable(Screen.BarcodeScanner.route) { QRScannerScreen(navController = navController) }
+
 
         // composable(Screen.RecipeDetail.route) { RecipeDetailScreen(navController) }
         // composable(Screen.BarcodeScanner.route) { BarcodeScannerScreen(navController) }

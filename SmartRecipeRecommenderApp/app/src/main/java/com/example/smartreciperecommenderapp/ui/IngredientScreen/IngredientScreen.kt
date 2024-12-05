@@ -4,12 +4,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.foundation.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartreciperecommenderapp.R
+import com.example.smartreciperecommenderapp.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,11 +52,11 @@ fun IngredientScreen(navController: NavController) {
                 IconButton(
                     onClick = {
                         // 这里可以加入导航跳转逻辑，例如跳转到条形码扫描页面
-                        navController.navigate("barcodeScannerScreen")
+                        navController.navigate(Screen.BarcodeScanner.route)
                     },
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    Icon(Icons.Filled.CameraAlt, contentDescription = "Scan Barcode")
+                    Image(painter = painterResource(id = R.drawable.ic_barcode_scanner), contentDescription = "Scan Barcode")
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

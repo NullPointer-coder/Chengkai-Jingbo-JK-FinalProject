@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CameraPreview(
+    navController: NavController,
     lifecycleOwner: LifecycleOwner,
     onQRCodeScanned: (String) -> Unit,
     onError: (Exception) -> Unit
@@ -153,7 +155,7 @@ fun CameraPreview(
                 .padding(16.dp),
             contentAlignment = Alignment.TopStart
         ) {
-            IconButton(onClick = { /* 返回功能 */ }) {
+            IconButton(onClick = {navController.popBackStack()}) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
