@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.example.smartreciperecommenderapp.data.model.CategoryEntity
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.Loading.LoadingScreen
@@ -59,7 +60,7 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 }
 
 @Composable
-fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewModel) {
+fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewModel, categories: List<CategoryEntity>) {
 
     /*
     val profileViewModel: ProfileViewModel = viewModel(
@@ -197,8 +198,10 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
             )
         }
 
-        composable(Screen.Home.route) { HomeScreen(navController) }
-        composable(Screen.Ingredient.route) { IngredientScreen(navController) }
+        composable(Screen.Home.route) { HomeScreen(navController = navController) }
+        composable(Screen.Ingredient.route) {
+            IngredientScreen(navController = navController, categories = categories)
+        }
         // composable(Screen.Account.route) { LoadingScreen(profileViewModel = profileViewModel, navController = navController)}
 
         // Account Screen (SignIn or Profile)

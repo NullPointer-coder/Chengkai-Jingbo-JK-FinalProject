@@ -3,6 +3,7 @@ package com.example.smartreciperecommenderapp.ui.IngredientScreen.camera
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,6 +13,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.google.accompanist.permissions.*
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -23,6 +26,7 @@ fun QRScannerScreen(
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
     val productDetails by viewModel.productDetails.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
+    val productImage by viewModel.productImage.collectAsState()
 
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
@@ -60,6 +64,18 @@ fun QRScannerScreen(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    // 显示产品图片
+                    productImage?.let { imageUrl ->
+                        Image(
+                            painter = rememberAsyncImagePainter(model = imageUrl),
+                            contentDescription = "Product Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                     Button(onClick = { viewModel.resetScan() }) {
                         Text("Scan Another")
                     }

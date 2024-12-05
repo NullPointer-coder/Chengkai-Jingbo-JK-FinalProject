@@ -22,7 +22,21 @@ data class Nutriments(
     val sugars: Float?
 )
 
+data class CategoriesResponse(
+    val tags: List<Category>
+)
+
+data class Category(
+    val id: String,
+    val name: String,
+    val products: Int,
+    val url: String
+)
+
 interface OpenFoodFactsService {
     @GET("api/v0/product/{barcode}.json")
     suspend fun getProduct(@Path("barcode") barcode: String): ProductResponse
+
+    @GET("categories.json")
+    suspend fun getCategories(): CategoriesResponse
 }

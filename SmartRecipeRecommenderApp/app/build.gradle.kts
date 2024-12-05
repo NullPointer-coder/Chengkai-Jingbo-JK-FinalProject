@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -92,6 +93,11 @@ dependencies {
     implementation ("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation ("io.coil-kt:coil-compose:2.7.0")
+
+    // Room
+    implementation ("androidx.room:room-runtime:2.6.1")
+    kapt ("androidx.room:room-compiler:2.6.1")
+    implementation ("androidx.room:room-ktx:2.6.1")
 
 
     implementation(libs.androidx.navigation.runtime.ktx)

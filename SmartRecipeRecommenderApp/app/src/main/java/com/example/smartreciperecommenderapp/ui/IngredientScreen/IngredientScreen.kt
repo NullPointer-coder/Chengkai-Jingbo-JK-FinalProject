@@ -12,11 +12,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartreciperecommenderapp.R
+import com.example.smartreciperecommenderapp.data.model.CategoryEntity
 import com.example.smartreciperecommenderapp.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IngredientScreen(navController: NavController) {
+fun IngredientScreen(navController: NavController, categories: List<CategoryEntity>) {
     var ingredientName by remember { mutableStateOf("") }
     val ingredients = remember { mutableStateListOf("Milk", "Eggs", "Cheese") }
 
@@ -79,6 +80,28 @@ fun IngredientScreen(navController: NavController) {
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn {
+                items(categories.size) { index ->
+                    val category = categories[index]
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = category.name,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Count: ${category.productCount}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
