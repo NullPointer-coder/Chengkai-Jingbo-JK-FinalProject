@@ -1,5 +1,8 @@
 package com.example.smartreciperecommenderapp.ui.IngredientScreen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -180,12 +183,15 @@ fun IngredientScreen(
                             .padding(bottom = 65.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(localIngredients) { ingredient ->
+                        items(
+                            items = localIngredients,
+                            key = { ingredient -> ingredient.instanceId } // 使用你的ingredient的唯一标识符作为key
+                        ) { ingredient ->
                             IngredientItemCard(
                                 ingredient = ingredient,
                                 onDeleteClick = { ingredientViewModel.deleteIngredient(ingredient) },
-                                onEditClick = {
-                                    editingIngredient = ingredient
+                                onEditClick = { ing ->
+                                    editingIngredient = ing
                                     showEditDialog = true
                                 }
                             )
@@ -217,109 +223,131 @@ fun IngredientItemCard(
     onDeleteClick: () -> Unit,
     onEditClick: (Ingredient) -> Unit
 ) {
-    val cardColor = determineCardColor(ingredient.expiryDate)
+    var visible by remember { mutableStateOf(true) }
 
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.elevatedCardElevation(8.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
+    // 当visible为false时，AnimatedVisibility将触发exit动画（淡出）
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut()
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 图片部分
-            Image(
-                painter = rememberAsyncImagePainter(model = ingredient.imageUrl ?: R.drawable.placeholder),
-                contentDescription = ingredient.name,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(MaterialTheme.shapes.medium),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // 文字部分
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = ingredient.name,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Text(
-                    text = "${ingredient.quantity} ${ingredient.unit}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-                ingredient.calories?.let {
-                    Text(
-                        text = "Calories: $it kcal",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-
-                ingredient.fat?.let {
-                    Text(
-                        text = "Fat: $it g",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-
-                ingredient.expiryDate?.let {
-                    val remainingDays = calculateRemainingDays(it)
-                    Text(
-                        text = if (remainingDays < 0) "Expired ${0 - remainingDays} day(s)"
-                        else if (remainingDays == 0) "Expires today"
-                        else "Expires in: $remainingDays day(s)",
-                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (remainingDays <= 0) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary
-                    )
-                }
+        // 在exit动画开始后，通过LaunchedEffect延迟调用onDeleteClick
+        LaunchedEffect(visible) {
+            if (!visible) {
+                // 根据动画时长进行延迟，例如淡出300ms后再真正删除
+                delay(300)
+                onDeleteClick()
             }
+        }
 
-            // 操作按钮
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.height(80.dp)
+        val cardColor = determineCardColor(ingredient.expiryDate)
+
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            elevation = CardDefaults.elevatedCardElevation(8.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = onDeleteClick,
-                    modifier = Modifier.size(24.dp)
+                // 图片部分
+                Image(
+                    painter = rememberAsyncImagePainter(model = ingredient.imageUrl ?: R.drawable.placeholder),
+                    contentDescription = ingredient.name,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(MaterialTheme.shapes.medium),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // 文字部分
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_delete),
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
+                    Text(
+                        text = ingredient.name,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+
+                    Text(
+                        text = "${ingredient.quantity} ${ingredient.unit}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    )
+                    ingredient.calories?.let {
+                        Text(
+                            text = "Calories: $it kcal",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    ingredient.fat?.let {
+                        Text(
+                            text = "Fat: $it g",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    ingredient.expiryDate?.let {
+                        val remainingDays = calculateRemainingDays(it)
+                        Text(
+                            text = if (remainingDays < 0) "Expired ${0 - remainingDays} day(s)"
+                            else if (remainingDays == 0) "Expires today"
+                            else "Expires in: $remainingDays day(s)",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = if (remainingDays <= 0) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
-                IconButton(
-                    onClick = { onEditClick(ingredient) }, // 传递当前 ingredient
-                    modifier = Modifier.size(24.dp)
+                // 操作按钮
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.height(80.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_edit),
-                        contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    IconButton(
+                        onClick = {
+                            // 点击删除时先将visible设置为false触发动画
+                            visible = false
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_delete),
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { onEditClick(ingredient) },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_edit),
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun EditIngredientDialog(
