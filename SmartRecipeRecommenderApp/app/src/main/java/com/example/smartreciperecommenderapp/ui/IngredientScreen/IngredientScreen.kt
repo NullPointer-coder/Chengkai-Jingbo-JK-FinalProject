@@ -96,12 +96,7 @@ fun IngredientScreen(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 TopAppBar(
-                    title = { Text("My Ingredients") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                        }
-                    }
+                    title = { Text("My Ingredients") }
                 )
             }
         ) { innerPadding ->
