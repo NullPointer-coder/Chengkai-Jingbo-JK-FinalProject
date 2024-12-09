@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.example.smartreciperecommenderapp.data.model.AppDatabase
-import com.example.smartreciperecommenderapp.data.model.CategoriesViewModel
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
 import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 

@@ -3,7 +3,7 @@ package com.example.smartreciperecommenderapp.ui.IngredientScreen.camera
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,20 +13,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
+import com.example.smartreciperecommenderapp.ui.navigation.Screen
 import com.google.accompanist.permissions.*
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QRScannerScreen(
     navController: NavController,
-    viewModel: QRScannerViewModel = viewModel(),
+    viewModel: QRScannerViewModel,
 ) {
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
     val productDetails by viewModel.productDetails.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
     val productImage by viewModel.productImage.collectAsState()
+    val ingredient by viewModel.ingredient.collectAsState()
 
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
@@ -51,33 +51,12 @@ fun QRScannerScreen(
                     )
                 }
             } else {
-                // 如果已扫描，显示产品详情
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Product Details:\n$productDetails",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // 显示产品图片
-                    productImage?.let { imageUrl ->
-                        Image(
-                            painter = rememberAsyncImagePainter(model = imageUrl),
-                            contentDescription = "Product Image",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                    Button(onClick = { viewModel.resetScan() }) {
-                        Text("Scan Another")
+                Log.d("QRScannerScreen", "Scan Result: $scanResult")
+                LaunchedEffect(ingredient) {
+                    Log.d("QRScannerScreen", "Ingredient: $ingredient")
+                    ingredient?.let {
+                        Log.d("QRScannerScreen", "Ingredient Details: ${it.name}")
+                        navController.navigate(Screen.ProductDetail.route)
                     }
                 }
             }

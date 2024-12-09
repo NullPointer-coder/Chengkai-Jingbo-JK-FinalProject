@@ -1,24 +1,15 @@
 package com.example.smartreciperecommenderapp.ui.navigation
 
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonOutline
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.smartreciperecommenderapp.data.repository.UserRepository
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
-
-import com.example.smartreciperecommenderapp.ui.*
-import androidx.navigation.NavController
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.signin.SignInScreen
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeScreen
@@ -32,10 +23,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.example.smartreciperecommenderapp.data.model.CategoryEntity
+import androidx.compose.ui.unit.dp
+
+import com.example.smartreciperecommenderapp.data.repository.IngredientRepository
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientViewModel
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientViewModelFactory
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.barcodeResult.ProductDetailScreen
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerScreen
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.Loading.LoadingScreen
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerViewModel
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileRoutes
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.favoritecuisines.FavoriteCuisinesScreen
@@ -44,30 +40,28 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.myfavorite.MyFavor
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.registerUsername.RegisterUsernameScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.settingsScreen.SettingsScreen
 
-
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : Screen("Home", Icons.Filled.Home)
     object Account : Screen("Account", Icons.Filled.PersonOutline)
     object Ingredient : Screen("Ingredient", Icons.Filled.ShoppingCart)
-    object RecipeDetail : Screen("recipe_detail", Icons.Filled.Home) // Example
-    object BarcodeScanner : Screen("barcode_scanner", Icons.Filled.QrCodeScanner) // Example
-    object SignIn : Screen("sign_in", Icons.Filled.PersonOutline) // Example
+    object RecipeDetail : Screen("recipe_detail", Icons.Filled.Home)
+    object BarcodeScanner : Screen("barcode_scanner", Icons.Filled.QrCodeScanner)
+    object SignIn : Screen("sign_in", Icons.Filled.PersonOutline)
     object LoggedIn : Screen("logged_in", Icons.Filled.PersonOutline)
     object Settings : Screen("settings", Icons.Filled.PersonOutline)
     object MyFavorite : Screen("my_favorite", Icons.Filled.PersonOutline)
     object FavoriteCuisines : Screen("favorite_cuisines", Icons.Filled.PersonOutline)
-
+    object ProductDetail : Screen("product_detail", Icons.Filled.Restaurant)
 }
 
+
 @Composable
-fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewModel, categories: List<CategoryEntity>) {
-
-    /*
-    val profileViewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory(UserRepository())
-    )
-     */
-
+fun NavGraph(
+    navController: NavHostController,
+    profileViewModel: ProfileViewModel,
+    ingredientRepository: IngredientRepository
+) {
+    val qrScannerViewModel: QRScannerViewModel = viewModel()
     val loginResult by profileViewModel.loginResult.observeAsState()
     val isEmailVerified by profileViewModel.isEmailVerified.observeAsState(false)
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -75,7 +69,7 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
 
     val displayedMessages = remember { mutableSetOf<String>() }
 
-    // 用于记录导航状态，防止重复导航
+    // 是否已经导航过到LoggedIn和SignIn的标记
     var hasNavigatedToLoggedIn by remember { mutableStateOf(false) }
     var hasNavigatedToSignIn by remember { mutableStateOf(false) }
 
@@ -89,7 +83,7 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
         }
     }
 
-    // Handle login results dynamically
+    // 动态处理登录结果
     LaunchedEffect(loginResult) {
         when (loginResult) {
             is LoginResult.Success -> {
@@ -114,8 +108,7 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
         }
     }
 
-
-    // 处理邮箱验证状态
+    // 邮箱验证状态
     LaunchedEffect(isEmailVerified) {
         if (isEmailVerified && !hasNavigatedToLoggedIn) {
             hasNavigatedToLoggedIn = true
@@ -134,13 +127,12 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
         onSettings = { navController.navigate(ProfileRoutes.SETTINGS) }
     )
 
-
+    val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
 
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
-
 
         composable(ProfileRoutes.REGISTER_USERNAME) {
             RegisterUsernameScreen(
@@ -167,8 +159,6 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
             )
         }
 
-
-
         composable(ProfileRoutes.MY_FAVORITE) {
             MyFavoriteScreen(
                 profileViewModel = profileViewModel,
@@ -187,7 +177,7 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
             SettingsScreen(
                 profileViewModel = profileViewModel,
                 onBack = { navController.popBackStack() },
-                onEditAccount = { /* Navigate to edit account screen */ },
+                onEditAccount = { /* Navigate to edit account screen if needed */ },
                 onLogout = {
                     profileViewModel.logout()
                     navController.navigate(Screen.Account.route) {
@@ -198,24 +188,36 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
             )
         }
 
-        composable(Screen.Home.route) { HomeScreen(navController = navController) }
-        composable(Screen.Ingredient.route) {
-            IngredientScreen(navController = navController, categories = categories)
+        composable(Screen.Home.route) {
+            HomeScreen(
+                navController = navController,
+                isLoggedIn = isLoggedIn
+            )
         }
-        // composable(Screen.Account.route) { LoadingScreen(profileViewModel = profileViewModel, navController = navController)}
 
-        // Account Screen (SignIn or Profile)
+        composable(Screen.Ingredient.route) {
+            val ingredientViewModel: IngredientViewModel = viewModel(
+                factory = IngredientViewModelFactory(ingredientRepository)
+            )
+            IngredientScreen(
+                navController = navController,
+                isLoggedIn = isLoggedIn,
+                qrScannerViewModel = qrScannerViewModel,
+                ingredientViewModel = ingredientViewModel
+            )
+        }
+
         composable(Screen.Account.route) {
-            val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
+            val currentIsLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
 
-            // Fetch user details when logged in
-            LaunchedEffect(isLoggedIn) {
-                if (isLoggedIn) {
+            // 如果登录了，尝试获取用户信息
+            LaunchedEffect(currentIsLoggedIn) {
+                if (currentIsLoggedIn) {
                     profileViewModel.fetchUserDetails()
                 }
             }
 
-            if (isLoggedIn) {
+            if (currentIsLoggedIn) {
                 LoggedInScreen(
                     profileViewModel = profileViewModel,
                     onMyFavoriteClick = { navController.navigate(ProfileRoutes.MY_FAVORITE) },
@@ -235,11 +237,63 @@ fun NavGraph(navController: NavHostController, profileViewModel: ProfileViewMode
             }
         }
 
-        composable(Screen.BarcodeScanner.route) { QRScannerScreen(navController = navController) }
+        composable(Screen.BarcodeScanner.route) {
+            QRScannerScreen(navController = navController, viewModel = qrScannerViewModel)
+        }
 
-
-        // composable(Screen.RecipeDetail.route) { RecipeDetailScreen(navController) }
-        // composable(Screen.BarcodeScanner.route) { BarcodeScannerScreen(navController) }
+        composable(Screen.ProductDetail.route) {
+            Log.d("ProductDetailScreen", "Navigating to ProductDetailScreen")
+            val ingredientViewModel: IngredientViewModel = viewModel(
+                factory = IngredientViewModelFactory(ingredientRepository)
+            )
+            ProductDetailScreen(
+                navController = navController,
+                qRScannerViewModel = qrScannerViewModel,
+                ingredientViewModel= ingredientViewModel
+            )
+        }
     }
 }
 
+@Composable
+fun LoginPrompt(
+    message: String,
+    onLoginClick: () -> Unit
+) {
+    Box(
+        modifier = androidx.compose.ui.Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = androidx.compose.ui.Alignment.Center
+    ) {
+        ElevatedCard(
+            modifier = androidx.compose.ui.Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = androidx.compose.ui.Modifier
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = androidx.compose.ui.Modifier.padding(bottom = 16.dp)
+                )
+                FilledTonalButton(
+                    onClick = onLoginClick,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text(text = "Go to Sign In")
+                }
+            }
+        }
+    }
+}

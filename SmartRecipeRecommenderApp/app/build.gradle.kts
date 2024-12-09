@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id ("com.google.dagger.hilt.android")
     id("kotlin-kapt")
 }
 
@@ -60,7 +61,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
 
 
-    implementation(platform("com.google.firebase:firebase-bom:33.6.0")) // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0")) // Import the Firebase BoM
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
@@ -96,9 +97,21 @@ dependencies {
 
     // Room
     implementation ("androidx.room:room-runtime:2.6.1")
+    implementation(libs.billing.ktx)
     kapt ("androidx.room:room-compiler:2.6.1")
     implementation ("androidx.room:room-ktx:2.6.1")
 
+    implementation("io.ktor:ktor-client-core:3.0.2")
+    implementation("io.ktor:ktor-client-okhttp:3.0.2")
+    implementation("io.ktor:ktor-serialization-gson:3.0.2")
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.2")
+
+
+    // Hit
+    implementation ("com.google.dagger:hilt-android:2.53")
+    kapt ("com.google.dagger:hilt-android-compiler:2.53")
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
