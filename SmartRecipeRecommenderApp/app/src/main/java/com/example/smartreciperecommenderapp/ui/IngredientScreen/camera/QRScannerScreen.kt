@@ -23,9 +23,7 @@ fun QRScannerScreen(
     viewModel: QRScannerViewModel,
 ) {
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
-    val productDetails by viewModel.productDetails.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
-    val productImage by viewModel.productImage.collectAsState()
     val ingredient by viewModel.ingredient.collectAsState()
 
     LaunchedEffect(Unit) {

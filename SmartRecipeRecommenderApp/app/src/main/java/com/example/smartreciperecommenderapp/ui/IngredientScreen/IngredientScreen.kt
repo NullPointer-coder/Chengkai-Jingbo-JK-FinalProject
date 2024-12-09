@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,11 +33,8 @@ import com.example.smartreciperecommenderapp.ui.navigation.Screen
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import java.util.*
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,22 +58,18 @@ fun IngredientScreen(
         val coroutineScope = rememberCoroutineScope()
         var searchJob by remember { mutableStateOf<Job?>(null) }
 
-
-        // 当组件首次进入时或重新进入时，加载本地数据（并进行同步）
         LaunchedEffect(key1 = true) {
             ingredientViewModel.loadIngredients()
         }
 
-        // 当 ingredientName 改变时，防抖搜索
         LaunchedEffect(ingredientName) {
             searchJob?.cancel()
             if (ingredientName.isNotBlank()) {
                 searchJob = coroutineScope.launch {
-                    delay(1000) // 等待用户停止输入1秒后再搜索
+                    delay(1000)
                     qrScannerViewModel.fetchNutrientsByName(ingredientName)
                 }
             } else {
-                // 输入为空则清空搜索结果
                 qrScannerViewModel.clearSearchedFoods()
                 selectedFood = null
             }
@@ -94,6 +90,11 @@ fun IngredientScreen(
                 }
             )
         }
+
+        val expiredIngredients = localIngredients.filter { it.expiryDate?.let { date -> calculateRemainingDays(date) < 0 } == true }
+        val nonExpiredIngredients = localIngredients.filter { it.expiryDate?.let { date -> calculateRemainingDays(date) >= 0 } != false }
+
+        var expiredExpanded by remember { mutableStateOf(false) }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -118,7 +119,6 @@ fun IngredientScreen(
                         value = ingredientName,
                         onValueChange = {
                             ingredientName = it
-                            // 当用户改变输入时清空之前的选择
                             selectedFood = null
                         },
                         label = { Text("Search Ingredient") },
@@ -137,12 +137,11 @@ fun IngredientScreen(
                     }
                 }
 
-                // 显示搜索结果列表
                 if (searchedFoods.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 200.dp) // 给搜索结果一个固定高度上限
+                            .heightIn(max = 200.dp)
                             .padding(top = 16.dp)
                     ) {
                         items(searchedFoods.size) { index ->
@@ -154,7 +153,6 @@ fun IngredientScreen(
                                         selectedFood = food
                                         qrScannerViewModel.updateSelectedFood(food)
                                         qrScannerViewModel.clearSearchedFoods()
-                                        // 当用户选择了某个食材后直接跳转详情页
                                         navController.navigate(Screen.ProductDetail.route)
                                     }
                                     .padding(8.dp)
@@ -165,8 +163,6 @@ fun IngredientScreen(
                     }
                 }
 
-                // 展示本地数据库中的ingredients列表
-                // 当搜索栏下方无需滚动时，在下方展示用户已有的ingredients
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (localIngredients.isNotEmpty()) {
@@ -175,26 +171,81 @@ fun IngredientScreen(
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(bottom = 65.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(
-                            items = localIngredients,
-                            key = { ingredient -> ingredient.instanceId } // 使用你的ingredient的唯一标识符作为key
-                        ) { ingredient ->
-                            IngredientItemCard(
-                                ingredient = ingredient,
-                                onDeleteClick = { ingredientViewModel.deleteIngredient(ingredient) },
-                                onEditClick = { ing ->
-                                    editingIngredient = ing
-                                    showEditDialog = true
-                                }
+                    val expiredCount = expiredIngredients.size
+                    if (expiredCount > 0) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expiredExpanded = !expiredExpanded }
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Expired ($expiredCount)",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
+                            Icon(
+                                imageVector = if (expiredExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = if (expiredExpanded) "Collapse" else "Expand"
+                            )
+                        }
+
+                        AnimatedVisibility(visible = expiredExpanded) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f, fill = false),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(
+                                    items = expiredIngredients,
+                                    key = { ingredient -> ingredient.instanceId }
+                                ) { ingredient ->
+                                    IngredientItemCard(
+                                        ingredient = ingredient,
+                                        onDeleteClick = {
+                                            ingredientViewModel.deleteIngredient(
+                                                ingredient
+                                            )
+                                        },
+                                        onEditClick = { ing ->
+                                            editingIngredient = ing
+                                            showEditDialog = true
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    val nonExpiredCount = nonExpiredIngredients.size
+                    if (nonExpiredCount > 0) {
+                        Text(
+                            text = "Non-Expired ($nonExpiredCount)",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(
+                                items = nonExpiredIngredients,
+                                key = { ingredient -> ingredient.instanceId }
+                            ) { ingredient ->
+                                IngredientItemCard(
+                                    ingredient = ingredient,
+                                    onDeleteClick = { ingredientViewModel.deleteIngredient(ingredient) },
+                                    onEditClick = { ing ->
+                                        editingIngredient = ing
+                                        showEditDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -207,7 +258,7 @@ fun IngredientScreen(
                     ) {
                         Text(
                             text = "You have no saved ingredients.",
-                            color = Color.Gray, // 字体颜色改为灰色
+                            color = Color.Gray,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

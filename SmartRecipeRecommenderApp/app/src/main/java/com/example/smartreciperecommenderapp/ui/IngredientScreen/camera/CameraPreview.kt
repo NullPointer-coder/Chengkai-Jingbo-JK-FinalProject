@@ -23,6 +23,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.media.AudioManager
+import android.media.ToneGenerator
 
 @Composable
 fun CameraPreview(
@@ -37,8 +39,8 @@ fun CameraPreview(
     var lastScannedTimestamp by remember { mutableLongStateOf(0L) }
     var isProcessing by remember { mutableStateOf(false) }
 
-    val stableTimeMillis = 1000L // 设置稳定时间为 1000ms
-    val analysisInterval = 200L // 限制图像分析频率为每200毫秒
+    val stableTimeMillis = 1000L
+    val analysisInterval = 200L
 
     DisposableEffect(Unit) {
         Log.d("CameraPreview", "DisposableEffect triggered")
@@ -46,12 +48,11 @@ fun CameraPreview(
         Log.d("CameraPreview", "Got cameraProvider: $cameraProvider")
         onDispose {
             Log.d("CameraPreview", "onDispose called, unbinding camera")
-            cameraProvider.unbindAll() // 确保释放摄像头
+            cameraProvider.unbindAll()
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 相机预览部分
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,14 +66,12 @@ fun CameraPreview(
                     val cameraProvider = cameraProviderFuture.get()
                     Log.d("CameraPreview", "cameraProvider from factory: $cameraProvider")
 
-                    // 配置相机预览
                     val preview = androidx.camera.core.Preview.Builder().build().also {
                         Log.d("CameraPreview", "Preview instance created")
                     }
                     preview.surfaceProvider = previewView.surfaceProvider
                     Log.d("CameraPreview", "SurfaceProvider set to preview")
 
-                    // 配置扫描逻辑
                     val imageAnalyzer = ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
@@ -81,7 +80,6 @@ fun CameraPreview(
                             var lastAnalysisTimestamp = 0L
 
                             analysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { imageProxy ->
-                                // 每次拿到图像数据都会触发这里
                                 Log.d("CameraPreview", "Analyzer invoked with imageProxy: ${imageProxy.imageInfo}")
                                 val currentTimestamp = System.currentTimeMillis()
                                 if (currentTimestamp - lastAnalysisTimestamp >= analysisInterval) {
@@ -100,9 +98,12 @@ fun CameraPreview(
                                                 isProcessing = true
                                                 Log.d("CameraPreview", "Stable Result Triggered: $result")
                                                 onQRCodeScanned(result)
+
+                                                val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+                                                toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 150)
+
                                                 lastScannedTimestamp = now
 
-                                                // 重置防抖标志位
                                                 CoroutineScope(Dispatchers.Main).launch {
                                                     delay(1000)
                                                     isProcessing = false
@@ -126,7 +127,6 @@ fun CameraPreview(
                             }
                         }
 
-                    // 配置相机选择器（后置摄像头）
                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
                     try {
                         Log.d("CameraPreview", "Attempting to bind camera use cases to lifecycle")
@@ -149,7 +149,6 @@ fun CameraPreview(
                 }
             )
 
-            // 扫描框
             Box(
                 modifier = Modifier
                     .size(250.dp)
@@ -167,7 +166,6 @@ fun CameraPreview(
             }
         }
 
-        // 顶部返回按钮
         Box(
             modifier = Modifier
                 .fillMaxWidth()

@@ -64,7 +64,6 @@ fun ProductDetailScreen(
     } ?: "") }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    // 新增：数量输入错误状态
     var quantityError by remember { mutableStateOf(false) }
 
     if (showDatePicker) {
@@ -78,13 +77,11 @@ fun ProductDetailScreen(
         )
     }
 
-    // 使用 Box 包裹 Card 和 FAB
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 48.dp, start = 16.dp, end = 16.dp)
     ) {
-        // 卡片中包含可滚动内容
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,14 +89,12 @@ fun ProductDetailScreen(
             elevation = CardDefaults.elevatedCardElevation(8.dp),
             shape = MaterialTheme.shapes.medium
         ) {
-            // 使用LazyColumn让内容可以滚动
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 顶部导航行
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -127,7 +122,6 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // 图片展示
                 item {
                     val imageUrl = currentIngredient.imageUrl
                     if (imageUrl != null) {
@@ -147,7 +141,6 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // Name & Search行
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -178,7 +171,6 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // 搜索结果列表
                 if (searchedFoods.isNotEmpty()) {
                     item {
                         ElevatedCard(
@@ -207,12 +199,10 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // Quantity字段 - 修改为数字输入
                 item {
                     OutlinedTextField(
                         value = quantityText,
                         onValueChange = { input ->
-                            // 使用正则表达式允许数字和一个可选的小数点
                             val regex = Regex("^\\d*\\.?\\d*\$")
                             if (regex.matches(input)) {
                                 quantityText = input
@@ -240,7 +230,6 @@ fun ProductDetailScreen(
                     )
                 }
 
-                // Unit字段
                 item {
                     Box(
                         modifier = Modifier
@@ -284,7 +273,6 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // Expiry Date字段
                 item {
                     Box(
                         modifier = Modifier
@@ -312,67 +300,69 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // Calories & Fat 卡片
-                item {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        elevation = CardDefaults.elevatedCardElevation(4.dp)
-                    ) {
-                        Row(
+                if (currentIngredient.calories != null && currentIngredient.fat != null)
+                {
+                    item {
+                        ElevatedCard(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(vertical = 8.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp)
                         ) {
-                            // Calories
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.LocalFireDepartment,
-                                    contentDescription = "Calories",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Calories",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = (currentIngredient.calories?.toString() ?: "None") + " kcal",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
+                                // Calories
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocalFireDepartment,
+                                        contentDescription = "Calories",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Calories",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = (currentIngredient.calories?.toString() ?: "None") + " kcal",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
 
-                            // Fat
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Spa,
-                                    contentDescription = "Fat",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Fat",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = (currentIngredient.fat?.toString() ?: "None") + " g",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                // Fat
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Spa,
+                                        contentDescription = "Fat",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Fat",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = (currentIngredient.fat?.toString() ?: "None") + " g",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }
@@ -388,10 +378,8 @@ fun ProductDetailScreen(
         FloatingActionButton(
             onClick = {
                 if (canSave) {
-                    // 解析数量输入
                     val quantity = quantityText.toDoubleOrNull() ?: 0.0
 
-                    // 解析到期日期
                     val sdf = SimpleDateFormat("MM-dd-yyyy", Locale.getDefault())
                     val expiryDate = try {
                         sdf.parse(expiryDateText)
@@ -399,7 +387,6 @@ fun ProductDetailScreen(
                         null
                     }
 
-                    // 创建更新后的 Ingredient 实例
                     val updatedIngredient = currentIngredient.copy(
                         name = nameText,
                         quantity = quantity,
@@ -407,7 +394,6 @@ fun ProductDetailScreen(
                         expiryDate = expiryDate
                     )
 
-                    // 保存更新后的 ingredient
                     ingredientViewModel.saveIngredient(
                         updatedIngredient,
                         onSuccess = {
@@ -422,9 +408,9 @@ fun ProductDetailScreen(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .offset(x = (-16).dp, y = 20.dp)
-                .alpha(if (canSave) 1f else 0.3f), // 不可用时降低透明度
+                .alpha(if (canSave) 1f else 0.3f),
             containerColor = if (canSave) MaterialTheme.colorScheme.primaryContainer else Color.Gray,
-            contentColor = if (canSave) MaterialTheme.colorScheme.onPrimaryContainer else Color.LightGray
+            contentColor = if (canSave) MaterialTheme.colorScheme.onPrimaryContainer else Color.DarkGray
         ) {
             Text("Save")
         }
@@ -455,6 +441,13 @@ fun DatePickerDialog(
                             selectedMonth = month
                             selectedDay = dayOfMonth
                         }
+
+                        val currentDate = Calendar.getInstance()
+                        currentDate.set(Calendar.HOUR_OF_DAY, 0)
+                        currentDate.set(Calendar.MINUTE, 0)
+                        currentDate.set(Calendar.SECOND, 0)
+                        currentDate.set(Calendar.MILLISECOND, 0)
+                        minDate = currentDate.timeInMillis
                     }
                 }
             )
@@ -473,7 +466,9 @@ fun DatePickerDialog(
                 } catch (e: Exception) {
                     selectedDate
                 }
-                onDateSelected(parsedDate)
+                if (parsedDate != null) {
+                    onDateSelected(parsedDate)
+                }
             }) {
                 Text("OK")
             }
