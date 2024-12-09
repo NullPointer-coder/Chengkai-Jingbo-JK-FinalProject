@@ -4,15 +4,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -110,7 +107,6 @@ fun IngredientScreen(
                     .padding(16.dp)
                     .fillMaxSize()
             ) {
-                // 搜索和扫描栏
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -230,7 +226,8 @@ fun IngredientScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .weight(1f, fill = false),
+                                .weight(1f, fill = false)
+                                .padding(bottom = 65.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(
@@ -276,16 +273,13 @@ fun IngredientItemCard(
 ) {
     var visible by remember { mutableStateOf(true) }
 
-    // 当visible为false时，AnimatedVisibility将触发exit动画（淡出）
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        // 在exit动画开始后，通过LaunchedEffect延迟调用onDeleteClick
         LaunchedEffect(visible) {
             if (!visible) {
-                // 根据动画时长进行延迟，例如淡出300ms后再真正删除
                 delay(300)
                 onDeleteClick()
             }
@@ -306,7 +300,6 @@ fun IngredientItemCard(
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 图片部分
                 Image(
                     painter = rememberAsyncImagePainter(model = ingredient.imageUrl ?: R.drawable.placeholder),
                     contentDescription = ingredient.name,
@@ -318,7 +311,6 @@ fun IngredientItemCard(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // 文字部分
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.weight(1f)
@@ -363,7 +355,6 @@ fun IngredientItemCard(
                     }
                 }
 
-                // 操作按钮
                 Column(
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.SpaceBetween,
@@ -371,7 +362,6 @@ fun IngredientItemCard(
                 ) {
                     IconButton(
                         onClick = {
-                            // 点击删除时先将visible设置为false触发动画
                             visible = false
                         },
                         modifier = Modifier.size(24.dp)
@@ -450,9 +440,9 @@ fun determineCardColor(expiryDate: Date?): Color {
 
     val daysDiff = calculateRemainingDays(expiryDate)
     return when {
-        daysDiff < 0 -> Color(0xFFFFCDD2) // 已过期，浅红色
-        daysDiff < 3 -> Color(0xFFFFFFE0) // 即将过期，浅黄色
-        else -> Color(0xFFC8E6C9)        // 保质期内，浅绿色
+        daysDiff < 0 -> Color(0xFFFFCDD2)
+        daysDiff < 3 -> Color(0xFFFFFFE0)
+        else -> Color(0xFFC8E6C9)
     }
 }
 

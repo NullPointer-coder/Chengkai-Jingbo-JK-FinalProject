@@ -17,7 +17,6 @@ class IngredientViewModel(
 
     fun loadIngredients() {
         viewModelScope.launch {
-            // 同步Firebase与Room
             ingredientRepository.syncIngredients()
             val localIngredients = ingredientRepository.getAllIngredientsFromRoom()
             _ingredients.value = localIngredients
@@ -29,7 +28,7 @@ class IngredientViewModel(
         viewModelScope.launch {
             try {
                 ingredientRepository.saveIngredient(ingredient)
-                loadIngredients() // 更新本地列表
+                loadIngredients()
                 onSuccess()
             } catch (e: Exception) {
                 Log.e("IngredientViewModel", "Error saving ingredient", e)
@@ -40,9 +39,7 @@ class IngredientViewModel(
     fun deleteIngredient(ingredient: Ingredient) {
         viewModelScope.launch {
             try {
-                // 调用仓库方法删除 Ingredient
                 ingredientRepository.deleteIngredient(ingredient)
-                // 删除后重新加载本地数据库
                 loadIngredients()
             } catch (e: Exception) {
                 Log.e("IngredientViewModel", "Error deleting ingredient: ${ingredient.id}", e)
@@ -55,8 +52,8 @@ class IngredientViewModel(
         Log.d("IngredientViewModel", "Updating ingredient quantity: $quantity")
         viewModelScope.launch {
             try {
-                ingredientRepository.updateIngredientQuantity(instanceId, quantity) // 更新保存逻辑
-                loadIngredients() // 更新本地列表
+                ingredientRepository.updateIngredientQuantity(instanceId, quantity)
+                loadIngredients()
             } catch (e: Exception) {
                 Log.e("IngredientViewModel", "Error updating ingredient: ${e.message}", e)
             }
