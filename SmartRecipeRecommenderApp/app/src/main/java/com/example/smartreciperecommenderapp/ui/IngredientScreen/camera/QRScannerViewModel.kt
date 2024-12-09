@@ -46,9 +46,6 @@ class QRScannerViewModel : ViewModel() {
             hasScanned = true
             _scanResult.value = result
             Log.d("QRScannerViewModel", "Scanned barcode: $result")
-
-            // 如果您想测试已知有数据的条码，可临时硬编码
-             // fetchProductInfo("00004831") // Nutella的条码（示例）
             fetchProductInfo(result)
         }
     }
@@ -188,6 +185,11 @@ class QRScannerViewModel : ViewModel() {
 
     fun clearSearchedFoods() {
         _searchedFoods.value = emptyList()
+        _error.value = null
+        _scanResult.value = null
+        _productDetails.value = null
+        _productImage.value = null
+        _ingredient.value = null
     }
 
 

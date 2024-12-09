@@ -66,11 +66,3 @@ interface FatSecretService {
         @Query("search_expression") name: String
     ): FatSecretSearchResponse
 }
-
-interface FatSecretImageRecognitionService {
-    @POST("rest/image-recognition/v1")
-    suspend fun recognizeImage(
-        @Header("Authorization") authorization: String,
-        @Body request: ImageRecognitionRequest
-    ): ImageRecognitionResponse
-}

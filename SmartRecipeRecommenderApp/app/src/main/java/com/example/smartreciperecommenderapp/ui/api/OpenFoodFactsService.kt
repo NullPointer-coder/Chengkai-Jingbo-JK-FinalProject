@@ -36,7 +36,4 @@ data class Category(
 interface OpenFoodFactsService {
     @GET("api/v0/product/{barcode}.json")
     suspend fun getProduct(@Path("barcode") barcode: String): ProductResponse
-
-    @GET("categories.json")
-    suspend fun getCategories(): CategoriesResponse
 }

@@ -6,13 +6,13 @@ import java.util.Date
 
 @Entity(tableName = "ingredient")
 data class IngredientEntity(
-    @PrimaryKey(autoGenerate = true) val instanceId: Int = 0, // 唯一标识符
-    val id: Int,                                              // 类别 ID
+    @PrimaryKey(autoGenerate = true) val instanceId: Int = 0,
+    val id: Int,
     val name: String,
     val quantity: Double,
     val unit: String,
     val category: String,
-    val expiryDate: Long?, // 用Long存储Date的时间戳
+    val expiryDate: Long?,
     val imageUrl: String?,
     val calories: Double?,
     val fat: Double?

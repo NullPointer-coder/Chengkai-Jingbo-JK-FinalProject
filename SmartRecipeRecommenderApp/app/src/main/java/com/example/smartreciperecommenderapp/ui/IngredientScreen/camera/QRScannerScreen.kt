@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.smartreciperecommenderapp.ui.navigation.Screen
 import com.google.accompanist.permissions.*
@@ -26,6 +25,7 @@ fun QRScannerScreen(
     val scanResult by viewModel.scanResult.collectAsState()
     val ingredient by viewModel.ingredient.collectAsState()
 
+    // Launch permission request if not granted
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
             cameraPermissionState.launchPermissionRequest()
@@ -34,8 +34,9 @@ fun QRScannerScreen(
 
     when {
         cameraPermissionState.status.isGranted -> {
+            // If camera permission is granted
             if (scanResult == null) {
-                // 如果尚未扫描，显示相机预览
+                // If no result yet, show camera preview for scanning
                 Box(modifier = Modifier.fillMaxSize()) {
                     CameraPreview(
                         navController = navController,
@@ -49,20 +50,24 @@ fun QRScannerScreen(
                     )
                 }
             } else {
+                // Once scanning is done and result is available
                 Log.d("QRScannerScreen", "Scan Result: $scanResult")
                 LaunchedEffect(ingredient) {
                     Log.d("QRScannerScreen", "Ingredient: $ingredient")
                     ingredient?.let {
                         Log.d("QRScannerScreen", "Ingredient Details: ${it.name}")
+                        // Navigate to the product details screen once ingredient data is obtained
                         navController.navigate(Screen.ProductDetail.route)
                     }
                 }
             }
         }
         cameraPermissionState.status.shouldShowRationale -> {
+            // If user denies permission but we can still show rationale
             PermissionRationale(cameraPermissionState)
         }
         else -> {
+            // If permission is denied and 'don't ask again' has been selected
             PermissionDeniedMessage(cameraPermissionState)
         }
     }
@@ -71,6 +76,8 @@ fun QRScannerScreen(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionRationale(cameraPermissionState: PermissionState) {
+    // This UI is shown when the user has denied the permission once but not permanently.
+    // Here we can explain why the camera permission is needed.
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Camera permission is required to scan Barcodes.")
@@ -85,17 +92,19 @@ fun PermissionRationale(cameraPermissionState: PermissionState) {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionDeniedMessage(cameraPermissionState: PermissionState) {
+    // This UI is shown if the user has permanently denied the permission (or no rationale can be shown).
+    // We provide instructions to open the app settings to grant permission again.
     val context = LocalContext.current
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Camera permission denied. Please grant it to scan QR codes.")
+            Text("Camera permission denied. Please grant it to scan Barcodes.")
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
                 if (cameraPermissionState.status.shouldShowRationale) {
-                    // 如果可以显示权限理由，重新请求权限
+                    // If we can still show rationale, request again
                     cameraPermissionState.launchPermissionRequest()
                 } else {
-                    // 如果用户选择了“不再询问”，引导到设置页面
+                    // If 'don't ask again' was selected, direct user to the app settings
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", context.packageName, null)
                     }
@@ -107,4 +116,3 @@ fun PermissionDeniedMessage(cameraPermissionState: PermissionState) {
         }
     }
 }
-
