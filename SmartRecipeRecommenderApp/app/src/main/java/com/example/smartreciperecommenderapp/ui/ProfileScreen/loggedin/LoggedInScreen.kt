@@ -64,14 +64,6 @@ fun LoggedInScreen(
                     text = "My Favorite",
                     onClick = onMyFavoriteClick
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ActionRow(
-                    icon = Icons.Default.Folder,
-                    text = "Favorite Cuisines",
-                    onClick = onFavoriteCuisinesClick
-                )
             }
         }
     )

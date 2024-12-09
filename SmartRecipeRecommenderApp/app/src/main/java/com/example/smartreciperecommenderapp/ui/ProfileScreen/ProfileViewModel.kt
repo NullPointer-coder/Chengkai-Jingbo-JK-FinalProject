@@ -190,6 +190,31 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
         }
     }
 
+    fun updateDisplayName(newDisplayName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        viewModelScope.launch {
+            val success = userRepository.updateUserDisplayName(newDisplayName)
+            if (success) {
+                // 更新本地 userName
+                userName.value = newDisplayName
+                onSuccess()
+            } else {
+                onFailure("Failed to update display name.")
+            }
+        }
+    }
+
+    fun resetPassword(email: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        viewModelScope.launch {
+            val result = userRepository.sendPasswordResetEmail(email)
+            if (result) {
+                onSuccess()
+            } else {
+                onFailure("Failed to send password reset email. Please check if the email is correct.")
+            }
+        }
+    }
+
+
 
 
     /** Reset login result. */

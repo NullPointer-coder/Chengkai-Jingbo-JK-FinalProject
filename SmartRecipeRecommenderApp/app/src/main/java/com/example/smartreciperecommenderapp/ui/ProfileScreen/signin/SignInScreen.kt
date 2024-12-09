@@ -1,5 +1,6 @@
 package com.example.smartreciperecommenderapp.ui.ProfileScreen.signin
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import com.example.smartreciperecommenderapp.data.repository.LoginResult
 
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
@@ -81,22 +83,56 @@ fun SignInScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Forgot password
-        TextButton(onClick = { }) {
+        var showResetDialog by remember { mutableStateOf(false) }
+        var resetEmail by remember { mutableStateOf("") }
+        val context = LocalContext.current
+
+        if (showResetDialog) {
+            AlertDialog(
+                onDismissRequest = { showResetDialog = false },
+                title = { Text("Reset Password") },
+                text = {
+                    Column {
+                        Text("Enter your email to receive a password reset link:")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = resetEmail,
+                            onValueChange = { resetEmail = it },
+                            label = { Text("Email") }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            profileViewModel.resetPassword(resetEmail,
+                                onSuccess = {
+                                    showResetDialog = false
+                                    Toast.makeText(context, "Password reset email sent successfully.", Toast.LENGTH_SHORT).show()
+                                },
+                                onFailure = { error ->
+                                    showResetDialog = false
+                                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    ) {
+                        Text("Send")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Forgot password 按钮
+        TextButton(onClick = { showResetDialog = true }) {
             Text(text = "Forgot your password?", style = MaterialTheme.typography.bodySmall)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Stay signed in toggle
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Stay Signed In", style = MaterialTheme.typography.bodyMedium)
-            Switch(checked = staySignedIn, onCheckedChange = { staySignedIn = it })
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

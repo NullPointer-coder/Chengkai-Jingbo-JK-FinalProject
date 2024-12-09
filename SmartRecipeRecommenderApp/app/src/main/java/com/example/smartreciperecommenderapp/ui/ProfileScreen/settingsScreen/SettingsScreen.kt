@@ -30,6 +30,21 @@ fun SettingsScreen(
     val userName = profileViewModel.userName.observeAsState("Guest").value
     val userAvatarUrl = profileViewModel.userAvatarUrl.observeAsState(null).value
 
+    var isEditing by remember { mutableStateOf(false) }
+    // 新的显示名输入状态
+    var newDisplayName by remember { mutableStateOf(userName) }
+    // 错误信息提示
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            snackbarHostState.showSnackbar(errorMessage ?: "")
+            errorMessage = null
+        }
+    }
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,26 +89,67 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 用户名
-            Text(
-                text = userName,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp
-                )
-            )
-
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 编辑账号信息按钮
-            Text(
-                text = "Edit Account Inform",
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 16.sp,
-                modifier = Modifier.clickable { onEditAccount() }
-            )
+            // 如果在编辑模式，则显示TextField，否则显示当前用户名
+            if (isEditing) {
+                OutlinedTextField(
+                    value = newDisplayName,
+                    onValueChange = { newDisplayName = it },
+                    label = { Text("New Display Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(onClick = {
+                        // Cancel editing
+                        isEditing = false
+                        newDisplayName = userName // 恢复原来的用户名称
+                    }) {
+                        Text("Cancel")
+                    }
+                    TextButton(onClick = {
+                        // Save new display name
+                        profileViewModel.updateDisplayName(
+                            newDisplayName,
+                            onSuccess = {
+                                isEditing = false
+                            },
+                            onFailure = {
+                                errorMessage = it
+                            }
+                        )
+                    }) {
+                        Text("Save")
+                    }
+                }
+            } else {
+                Text(
+                    text = userName,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // 编辑账号信息按钮
+                Text(
+                    text = "Edit Account Inform",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        isEditing = true
+                        // 可以在这里调用 onEditAccount() 如果需要在外部监听
+                        onEditAccount()
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

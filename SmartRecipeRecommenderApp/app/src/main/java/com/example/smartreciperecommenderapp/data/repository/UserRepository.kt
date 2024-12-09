@@ -120,6 +120,31 @@ class UserRepository {
         }
     }
 
+    suspend fun updateUserDisplayName(newDisplayName: String): Boolean {
+        val currentUser = auth.currentUser ?: return false
+        return try {
+            val profileUpdates = userProfileChangeRequest {
+                displayName = newDisplayName
+            }
+            currentUser.updateProfile(profileUpdates).await()
+            true
+        } catch (e: Exception) {
+            println("Error updating display name: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun sendPasswordResetEmail(email: String): Boolean {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            true
+        } catch (e: Exception) {
+            println("Error sending password reset email: ${e.message}")
+            false
+        }
+    }
+
+
     // Log out the user
     fun logoutUser() {
         auth.signOut()
