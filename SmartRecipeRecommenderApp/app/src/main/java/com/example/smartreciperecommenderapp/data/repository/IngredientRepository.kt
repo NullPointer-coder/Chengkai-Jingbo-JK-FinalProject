@@ -11,56 +11,72 @@ class IngredientRepository(
     private val ingredientDao: IngredientDao,
     private val firebaseService: FirebaseIngredientService
 ) {
+    /**
+     * Save an ingredient to both Firebase and the local Room database.
+     * Assigns a unique instanceId based on the current maximum instanceId in the local database.
+     */
     suspend fun saveIngredient(ingredient: Ingredient) = withContext(Dispatchers.IO) {
         Log.d("IngredientRepository", "Saving ingredient: $ingredient")
 
-        // 获取当前最大的 instanceId
+        // Get the current maximum instanceId from the local database
         val currentMaxInstanceId = ingredientDao.getMaxInstanceId() ?: 0
 
-        // 为新的实例分配唯一的 instanceId
+        // Assign a unique instanceId to the new ingredient
         val newIngredient = ingredient.copy(instanceId = currentMaxInstanceId + 1)
 
-        // 保存到 Firebase
+        // Save to Firebase
         firebaseService.saveIngredient(newIngredient)
 
-        // 保存到本地 Room 数据库
+        // Save to the local Room database
         ingredientDao.insertIngredient(IngredientEntity.fromIngredient(newIngredient))
 
         Log.d("IngredientRepository", "Ingredient saved with instanceId: ${newIngredient.instanceId}")
     }
 
-
+    /**
+     * Synchronize ingredients from Firebase to the local Room database.
+     * If the number of ingredients in Firebase is greater than in Room,
+     * the Room database is updated to match Firebase.
+     */
     suspend fun syncIngredients() = withContext(Dispatchers.IO) {
         val firebaseIngredients = firebaseService.getAllIngredients()
         val localIngredients = ingredientDao.getAllIngredients().map { it.toIngredient() }
 
-        // 如果Firebase中的数量 > Room的数量，则更新Room
+        // If Firebase has more ingredients than the local database, update the local database
         if (firebaseIngredients.size > localIngredients.size) {
-            // 更新Room
             val entities = firebaseIngredients.map { IngredientEntity.fromIngredient(it) }
             ingredientDao.deleteAll()
             ingredientDao.insertIngredients(entities)
         }
     }
 
+    /**
+     * Retrieve all ingredients from the local Room database.
+     * Returns a list of Ingredient domain objects.
+     */
     suspend fun getAllIngredientsFromRoom(): List<Ingredient> = withContext(Dispatchers.IO) {
         ingredientDao.getAllIngredients().map { it.toIngredient() }
     }
 
+    /**
+     * Delete an ingredient from both Firebase and the local Room database.
+     */
     suspend fun deleteIngredient(ingredient: Ingredient) {
-        // 删除 Firebase 数据
+        // Delete from Firebase
         firebaseService.deleteIngredient(ingredient)
 
-        // 删除 Room 数据
+        // Delete from Room
         ingredientDao.deleteIngredientByInstanceId(ingredient.instanceId)
     }
 
+    /**
+     * Update the quantity of a specific ingredient by its instanceId in both Room and Firebase.
+     */
     suspend fun updateIngredientQuantity(instanceId: Int, quantity: Double) = withContext(Dispatchers.IO) {
-        // 更新 Room 数据库
+        // Update Room database
         ingredientDao.updateIngredientQuantity(instanceId, quantity)
 
-        // 更新 Firebase 数据
+        // Update Firebase
         firebaseService.updateIngredientQuantity(instanceId, quantity)
     }
-
 }

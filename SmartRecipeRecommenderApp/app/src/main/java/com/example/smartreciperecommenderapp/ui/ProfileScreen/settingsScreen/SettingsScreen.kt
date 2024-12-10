@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 
+/**
+ * A screen to display and update the user's personal information.
+ * Allows the user to edit their display name, view their avatar,
+ * and provides a logout option.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -27,16 +32,19 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     onResetNavigatedToLoggedIn: () -> Unit
 ) {
+    // Observe the user's display name and avatar URL
     val userName = profileViewModel.userName.observeAsState("Guest").value
     val userAvatarUrl = profileViewModel.userAvatarUrl.observeAsState(null).value
 
     var isEditing by remember { mutableStateOf(false) }
-    // 新的显示名输入状态
+    // Local state for the new display name input field
     var newDisplayName by remember { mutableStateOf(userName) }
-    // 错误信息提示
+    // State for handling and displaying error messages
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Display error messages as a snackbar
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
             snackbarHostState.showSnackbar(errorMessage ?: "")
@@ -44,15 +52,14 @@ fun SettingsScreen(
         }
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Personal Inform Page") },
+                title = { Text("Personal Information") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, // 使用 AutoMirrored 版本
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -60,6 +67,7 @@ fun SettingsScreen(
             )
         }
     ) { innerPadding ->
+        // Main content area
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -68,6 +76,7 @@ fun SettingsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            // If user has an avatar URL, display it, otherwise show a default icon
             if (userAvatarUrl != null) {
                 AsyncImage(
                     model = userAvatarUrl,
@@ -91,7 +100,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 如果在编辑模式，则显示TextField，否则显示当前用户名
+            // If the user is in editing mode, show an input field for the new display name
+            // Otherwise, show the current display name with an option to edit
             if (isEditing) {
                 OutlinedTextField(
                     value = newDisplayName,
@@ -102,18 +112,16 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = {
-                        // Cancel editing
+                        // Cancel editing and revert to the original username
                         isEditing = false
-                        newDisplayName = userName // 恢复原来的用户名称
+                        newDisplayName = userName
                     }) {
                         Text("Cancel")
                     }
                     TextButton(onClick = {
-                        // Save new display name
+                        // Save the updated display name
                         profileViewModel.updateDisplayName(
                             newDisplayName,
                             onSuccess = {
@@ -138,14 +146,14 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // 编辑账号信息按钮
+                // A clickable text to switch to editing mode
                 Text(
-                    text = "Edit Account Inform",
+                    text = "Edit Account Info",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     modifier = Modifier.clickable {
                         isEditing = true
-                        // 可以在这里调用 onEditAccount() 如果需要在外部监听
+                        // Call onEditAccount if needed to handle external logic
                         onEditAccount()
                     }
                 )
@@ -153,12 +161,12 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 分隔线
+            // A divider line
             HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 登出按钮
+            // Logout text: clicking it logs the user out and resets navigation states
             Text(
                 text = "Log Out",
                 style = MaterialTheme.typography.bodyLarge.copy(

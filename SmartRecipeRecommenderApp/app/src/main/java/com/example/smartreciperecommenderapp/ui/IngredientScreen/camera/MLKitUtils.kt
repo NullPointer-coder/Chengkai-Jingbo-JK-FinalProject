@@ -10,9 +10,13 @@ import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 
+/**
+ * Utility object for using ML Kit to scan barcodes from camera frames.
+ * It is configured to handle multiple barcode formats.
+ */
 object MLKitUtils {
 
-    // 配置支持的条形码格式
+    // Configure supported barcode formats
     private val options = BarcodeScannerOptions.Builder()
         .setBarcodeFormats(
             Barcode.FORMAT_QR_CODE,
@@ -22,10 +26,18 @@ object MLKitUtils {
         )
         .build()
 
+    // Lazy initialization of the barcode scanner
     private val barcodeScanner: BarcodeScanner by lazy {
         BarcodeScanning.getClient(options)
     }
 
+    /**
+     * Processes the given [ImageProxy] frame to detect barcodes using ML Kit.
+     *
+     * @param imageProxy The image frame from CameraX.
+     * @param onSuccess Callback triggered when a barcode is successfully detected.
+     * @param onError Callback triggered when an error occurs during processing.
+     */
     @OptIn(ExperimentalGetImage::class)
     fun processImageProxy(
         imageProxy: ImageProxy,
@@ -35,20 +47,23 @@ object MLKitUtils {
         val mediaImage: Image = imageProxy.image ?: return
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
+        // Process the image using the ML Kit barcode scanner
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
+                // If one or more barcodes are detected, call onSuccess with the raw value
                 barcodes.forEach { barcode ->
                     barcode.rawValue?.let { rawValue ->
-                        onSuccess(rawValue) // 直接返回扫描结果
+                        onSuccess(rawValue)
                     }
                 }
             }
             .addOnFailureListener { exception ->
-                onError(exception) // 返回错误信息
+                // If an error occurs, call onError
+                onError(exception)
             }
             .addOnCompleteListener {
-                imageProxy.close() // 确保释放资源
+                // Close the imageProxy to free resources
+                imageProxy.close()
             }
     }
 }
-

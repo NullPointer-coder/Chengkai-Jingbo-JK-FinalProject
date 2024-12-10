@@ -1,10 +1,6 @@
 package com.example.smartreciperecommenderapp.ui.api
 
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
 data class FatSecretSearchResponse(
     val foods: Foods
@@ -18,7 +14,7 @@ data class FatSecretFood(
     val food_name: String,
     val food_description: String,
     val food_id: String
-    // 根据需要解析calories和fat
+    // Parse calories and fat as needed.
 )
 
 data class ImageRecognitionRequest(
@@ -37,7 +33,7 @@ data class EatenFood(
     val serving_size: Double? = null
 )
 
-// 根据官方文档构建响应数据类
+// Build response data classes according to the official documentation
 data class ImageRecognitionResponse(
     val food_response: List<FoodResponseItem>
 )
@@ -50,13 +46,13 @@ data class FoodResponseItem(
 
 interface FatSecretService {
     /**
-     * 使用 FatSecret 食物搜索 API
-     * 需要使用 OAuth2 token 在 Header 中添加 "Authorization: Bearer <access_token>"
+     * Use the FatSecret food search API.
+     * Requires an OAuth2 token. Add "Authorization: Bearer <access_token>" in the header.
      *
-     * 示例查询参数：
+     * Example query parameters:
      * method=foods.search
      * format=json
-     * search_expression=name(要搜索的食材名)
+     * search_expression=name (the ingredient to search for)
      */
     @GET("rest/server.api")
     suspend fun searchFoods(

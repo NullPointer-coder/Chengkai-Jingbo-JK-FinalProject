@@ -8,7 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [IngredientEntity::class],
-    version = 2,  // 更新到最新版本
+    version = 2,  // Updated to the latest version
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -20,7 +20,9 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         /**
-         * 获取数据库实例
+         * Retrieve the database instance.
+         * If the database does not exist yet, create it using the Room builder
+         * and apply any necessary migrations.
          */
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -29,8 +31,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    .addMigrations(MIGRATION_1_2)  // 注册迁移逻辑
-                    .fallbackToDestructiveMigration() // 若迁移失败则重建数据库（仅开发阶段）
+                    .addMigrations(MIGRATION_1_2)  // Register migration logic
+                    .fallbackToDestructiveMigration() // Rebuild the database if migration fails (development only)
                     .build()
                 INSTANCE = instance
                 instance
@@ -38,10 +40,12 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * 定义迁移逻辑：从版本 1 到 2
+         * Define migration logic from version 1 to 2.
+         * Here we add a new column 'instanceId' to the 'ingredient' table.
          */
         val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
+                // Add a new non-nullable column 'instanceId' with default value 0
                 database.execSQL("ALTER TABLE ingredient ADD COLUMN instanceId INTEGER NOT NULL DEFAULT 0")
             }
         }

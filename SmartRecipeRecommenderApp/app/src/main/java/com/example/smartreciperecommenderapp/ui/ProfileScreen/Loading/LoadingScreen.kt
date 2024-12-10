@@ -8,26 +8,31 @@ import androidx.compose.ui.*
 import androidx.navigation.NavController
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 
+/**
+ * A loading screen that waits for the user's login state to be determined.
+ * Once the login state is known, navigates to the appropriate screen.
+ */
 @Composable
 fun LoadingScreen(profileViewModel: ProfileViewModel, navController: NavController) {
-    // Observe login state
+    // Observe the user's login state from the ProfileViewModel
     val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(initial = false)
 
+    // When the login state changes, navigate accordingly
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
-            // 如果已登录，导航到主界面
+            // If the user is logged in, navigate to the main (logged-in) screen
             navController.navigate("loggedin") {
-                popUpTo("loading") { inclusive = true } // 清理导航堆栈
+                popUpTo("loading") { inclusive = true } // Clear the navigation stack
             }
         } else {
-            // 未登录，导航到登录界面
+            // If the user is not logged in, navigate to the sign-in screen
             navController.navigate("signin") {
                 popUpTo("loading") { inclusive = true }
             }
         }
     }
 
-    // 显示加载动画
+    // Show a loading indicator while determining the user's login state
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

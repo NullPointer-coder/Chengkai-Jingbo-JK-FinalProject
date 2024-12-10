@@ -28,8 +28,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         applicationContext.deleteDatabase("smart_recipe_db")
-
-        // 在onCreate中初始化数据库和依赖
+        // Initialize the database and dependencies in onCreate// 在onCreate中初始化数据库和依赖
         val database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,

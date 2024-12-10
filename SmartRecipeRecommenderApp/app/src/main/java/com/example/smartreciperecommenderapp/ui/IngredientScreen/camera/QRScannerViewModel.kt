@@ -1,4 +1,3 @@
-
 package com.example.smartreciperecommenderapp.ui.IngredientScreen.camera
 
 import android.annotation.SuppressLint
@@ -15,7 +14,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.IOException
 
+/**
+ * ViewModel responsible for handling QR scan results, fetching product details from APIs,
+ * and updating ingredient data based on the scanned barcode or user searches.
+ */
 class QRScannerViewModel : ViewModel() {
+    // States for scan result, errors, product details, images, and ingredients
     private val _scanResult = MutableStateFlow<String?>(null)
     val scanResult: StateFlow<String?> get() = _scanResult
 
@@ -28,7 +32,8 @@ class QRScannerViewModel : ViewModel() {
     private val _productImage = MutableStateFlow<String?>(null)
     val productImage: StateFlow<String?> get() = _productImage
 
-    private var hasScanned = false // 标记是否已经扫描过
+    // Track whether a scan has already occurred to prevent repeated fetches
+    private var hasScanned = false
 
     private val _ingredient = MutableStateFlow<Ingredient?>(null)
     val ingredient: StateFlow<Ingredient?> get() = _ingredient
@@ -36,11 +41,16 @@ class QRScannerViewModel : ViewModel() {
     private val _searchedFoods = MutableStateFlow<List<FatSecretFood>>(emptyList())
     val searchedFoods: StateFlow<List<FatSecretFood>> get() = _searchedFoods
 
+    // Google Image Search service for fetching product images
     private val googleImageSearchService = GoogleImageSearchService(
         apiKey = "AIzaSyD48oYqtdfpWNI_6Su4h7bL9B6408K2W4U",
         cseCx = "f617f7ad9a77d4d7e"
     )
 
+    /**
+     * Handle a successful scan.
+     * If not scanned before, set the scan result and fetch product info.
+     */
     fun onScanSuccess(result: String) {
         if (!hasScanned) {
             hasScanned = true
@@ -50,6 +60,9 @@ class QRScannerViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Reset the scanning state to allow another scan.
+     */
     fun resetScan() {
         hasScanned = false
         _error.value = null
@@ -59,11 +72,17 @@ class QRScannerViewModel : ViewModel() {
         _ingredient.value = null
     }
 
+    /**
+     * Handle scanning errors.
+     */
     fun onScanError(exception: Exception) {
         _error.value = exception
         Log.e("QRScannerViewModel", "Scan error occurred", exception)
     }
 
+    /**
+     * Fetch product information from the OpenFoodFacts API based on the scanned barcode.
+     */
     private fun fetchProductInfo(barcode: String) {
         viewModelScope.launch {
             Log.d("QRScannerViewModel", "Fetching product info for barcode: $barcode")
@@ -102,37 +121,43 @@ class QRScannerViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Fetch nutrient information by searching for foods using the FatSecret API.
+     */
     fun fetchNutrientsByName(name: String) {
         viewModelScope.launch {
             try {
-                // 1. 获取Access Token
+                // 1. Retrieve the Access Token
                 val tokenResponse = RetrofitInstance.fatSecretAuthApi.getAccessToken()
                 val accessToken = tokenResponse.access_token
 
-                // 2. 使用Access Token搜索食材信息
+                // 2. Use the Access Token to search for food items
                 val searchResponse = RetrofitInstance.fatSecretApi.searchFoods(
                     authorization = "Bearer $accessToken",
                     name = name
                 )
 
-                // 3. 处理搜索结果
+                // 3. Process the search results
                 val foods = searchResponse.foods.food
                 _searchedFoods.value = foods
 
                 Log.d("QRScannerViewModel", "Fetched ${foods.size} foods for $name")
 
-
             } catch (e: Exception) {
                 Log.e("QRScannerViewModel", "Error fetching nutrients by name: ${e.message}", e)
-                // 根据需要处理错误信息，例如更新_stateFlow表示错误状态
+                // Handle errors as needed, such as updating a stateFlow to indicate an error state
             }
         }
     }
 
+    /**
+     * Update the currently selected ingredient with additional details from a chosen FatSecretFood item.
+     * Attempts to parse calories and fat from the food description and fetch an image using Google search.
+     */
     fun updateSelectedFood(selectedFood: FatSecretFood) {
         val description = selectedFood.food_description
 
-        // 使用正则从 food_description 中提取出 calories 和 fat
+        // Extract calories and fat from the food description using regex
         val regex = Regex("""Calories:\s*(\d+(?:\.\d+)?)kcal\s*\|\s*Fat:\s*(\d+(?:\.\d+)?)g""")
         val matchResult = regex.find(description)
         val matches = matchResult?.destructured
@@ -156,10 +181,7 @@ class QRScannerViewModel : ViewModel() {
 
         viewModelScope.launch {
             val updatedIngredient = try {
-                // 如果您有FatSecret food.get接口可用，可以在这里尝试获取图片
-                // 假设food.get无法提供图片，那么直接用Google搜索
-
-                // 使用Google搜索图片
+                // Use Google image search to find an image if FatSecret does not provide one
                 val googleImage = googleImageSearchService.fetchFirstImageForFood(selectedFood.food_name)
                 Log.d("QRScannerViewModel", "Fetched image URL from Google: $googleImage")
 
@@ -182,7 +204,9 @@ class QRScannerViewModel : ViewModel() {
         }
     }
 
-
+    /**
+     * Clear the searched foods and reset related states.
+     */
     fun clearSearchedFoods() {
         _searchedFoods.value = emptyList()
         _error.value = null
@@ -191,6 +215,4 @@ class QRScannerViewModel : ViewModel() {
         _productImage.value = null
         _ingredient.value = null
     }
-
-
 }
