@@ -39,6 +39,9 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.loggedin.LoggedInS
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.myfavorite.MyFavoriteScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.registerUsername.RegisterUsernameScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.settingsScreen.SettingsScreen
+import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
+import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModel
+import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
 
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : Screen("Home", Icons.Filled.Home)
@@ -128,6 +131,7 @@ fun NavGraph(
     )
 
     val isLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
+    val fatSecretService = RetrofitInstance.fatSecretApi
 
     NavHost(
         navController = navController,
@@ -188,12 +192,21 @@ fun NavGraph(
             )
         }
 
+
         composable(Screen.Home.route) {
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(
+                    ingredientRepository = ingredientRepository,
+                    fatSecretService = fatSecretService
+                )
+            )
             HomeScreen(
                 navController = navController,
-                isLoggedIn = isLoggedIn
+                isLoggedIn = profileViewModel.isLoggedIn.observeAsState(false).value,
+                homeViewModel = homeViewModel
             )
         }
+
 
         composable(Screen.Ingredient.route) {
             val ingredientViewModel: IngredientViewModel = viewModel(
