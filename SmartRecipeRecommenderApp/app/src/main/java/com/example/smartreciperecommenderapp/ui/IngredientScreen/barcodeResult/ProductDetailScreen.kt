@@ -7,11 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
@@ -19,7 +18,7 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.viewinterop.*
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientViewModel
@@ -37,6 +36,7 @@ fun ProductDetailScreen(
     val ingredient by qRScannerViewModel.ingredient.collectAsState()
     val searchedFoods by qRScannerViewModel.searchedFoods.collectAsState()
 
+    // If no ingredient details are available, show a message.
     if (ingredient == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -49,6 +49,7 @@ fun ProductDetailScreen(
 
     val currentIngredient = ingredient!!
 
+    // UI state variables for editable fields
     var nameText by remember { mutableStateOf(currentIngredient.name) }
     val units = listOf("g", "kg", "ml", "L", "pieces")
     var quantityText by remember { mutableStateOf(currentIngredient.quantity.toString()) }
@@ -59,13 +60,19 @@ fun ProductDetailScreen(
     }
     var unitDropdownExpanded by remember { mutableStateOf(false) }
 
-    var expiryDateText by remember { mutableStateOf(currentIngredient.expiryDate?.let {
-        SimpleDateFormat("MM-dd-yyyy", Locale.getDefault()).format(it)
-    } ?: "") }
+    var expiryDateText by remember {
+        mutableStateOf(
+            currentIngredient.expiryDate?.let {
+                SimpleDateFormat("MM-dd-yyyy", Locale.getDefault()).format(it)
+            } ?: ""
+        )
+    }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    // Error state if the quantity is not a valid number
     var quantityError by remember { mutableStateOf(false) }
 
+    // Show a date picker dialog if required
     if (showDatePicker) {
         DatePickerDialog(
             onDateSelected = { selectedDate ->
@@ -89,12 +96,14 @@ fun ProductDetailScreen(
             elevation = CardDefaults.elevatedCardElevation(8.dp),
             shape = MaterialTheme.shapes.medium
         ) {
+            // Using a LazyColumn to allow scrolling for content
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Top row with a back button and title
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -122,6 +131,7 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Display the product image if available
                 item {
                     val imageUrl = currentIngredient.imageUrl
                     if (imageUrl != null) {
@@ -141,6 +151,7 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Name field and search button
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -158,6 +169,7 @@ fun ProductDetailScreen(
 
                         Button(
                             onClick = {
+                                // Perform search only if the name is sufficiently long
                                 if (nameText.isNotBlank() && nameText.length > 2) {
                                     qRScannerViewModel.fetchNutrientsByName(nameText)
                                 } else {
@@ -171,6 +183,7 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Display search results if any
                 if (searchedFoods.isNotEmpty()) {
                     item {
                         ElevatedCard(
@@ -199,6 +212,7 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Quantity field with validation for numeric input
                 item {
                     OutlinedTextField(
                         value = quantityText,
@@ -221,7 +235,7 @@ fun ProductDetailScreen(
                         supportingText = {
                             if (quantityError) {
                                 Text(
-                                    text = "请输入有效的数字",
+                                    text = "Please enter a valid number",
                                     color = MaterialTheme.colorScheme.error,
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -230,6 +244,7 @@ fun ProductDetailScreen(
                     )
                 }
 
+                // Unit selection field with a dropdown menu
                 item {
                     Box(
                         modifier = Modifier
@@ -273,6 +288,7 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Expiry date field with a date picker
                 item {
                     Box(
                         modifier = Modifier
@@ -281,7 +297,7 @@ fun ProductDetailScreen(
                                 showDatePicker = true
                             }
                     ) {
-                        Log.d("ProductDetailScreen", "id: ${ingredient?.id  }")
+                        Log.d("ProductDetailScreen", "id: ${ingredient?.id}")
                         OutlinedTextField(
                             value = expiryDateText,
                             onValueChange = { expiryDateText = it },
@@ -300,8 +316,8 @@ fun ProductDetailScreen(
                     }
                 }
 
-                if (currentIngredient.calories != null && currentIngredient.fat != null)
-                {
+                // Display calories & fat card only if both values are available
+                if (currentIngredient.calories != null && currentIngredient.fat != null) {
                     item {
                         ElevatedCard(
                             modifier = Modifier
@@ -316,7 +332,7 @@ fun ProductDetailScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Calories
+                                // Calories info
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
@@ -333,14 +349,14 @@ fun ProductDetailScreen(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(
-                                        text = (currentIngredient.calories?.toString() ?: "None") + " kcal",
+                                        text = (currentIngredient.calories.toString()) + " kcal",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
-                                // Fat
+                                // Fat info
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
@@ -357,7 +373,7 @@ fun ProductDetailScreen(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(
-                                        text = (currentIngredient.fat?.toString() ?: "None") + " g",
+                                        text = (currentIngredient.fat.toString()) + " g",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -370,16 +386,17 @@ fun ProductDetailScreen(
             }
         }
 
+        // Determine if the 'Save' button should be enabled
         val canSave = !quantityError &&
                 quantityText.isNotBlank() &&
-                ingredient!!.calories != null && !ingredient!!.calories?.isNaN()!! &&
-                ingredient!!.fat != null && !ingredient!!.fat?.isNaN()!!
+                ingredient!!.calories != null && !ingredient!!.calories!!.isNaN() &&
+                ingredient!!.fat != null && !ingredient!!.fat!!.isNaN()
 
+        // Save FloatingActionButton
         FloatingActionButton(
             onClick = {
                 if (canSave) {
                     val quantity = quantityText.toDoubleOrNull() ?: 0.0
-
                     val sdf = SimpleDateFormat("MM-dd-yyyy", Locale.getDefault())
                     val expiryDate = try {
                         sdf.parse(expiryDateText)
@@ -387,6 +404,7 @@ fun ProductDetailScreen(
                         null
                     }
 
+                    // Create an updated ingredient object with the new values
                     val updatedIngredient = currentIngredient.copy(
                         name = nameText,
                         quantity = quantity,
@@ -394,6 +412,7 @@ fun ProductDetailScreen(
                         expiryDate = expiryDate
                     )
 
+                    // Save the updated ingredient
                     ingredientViewModel.saveIngredient(
                         updatedIngredient,
                         onSuccess = {
@@ -414,10 +433,13 @@ fun ProductDetailScreen(
         ) {
             Text("Save")
         }
-
     }
 }
 
+/**
+ * A dialog for selecting a date using a DatePicker.
+ * Automatically sets the minimum date to the current day so that past dates are disabled.
+ */
 @Composable
 fun DatePickerDialog(
     onDateSelected: (Date) -> Unit,
@@ -436,12 +458,14 @@ fun DatePickerDialog(
             AndroidView(
                 factory = { ctx ->
                     android.widget.DatePicker(ctx).apply {
+                        // Initialize the date picker with the currently selected date
                         init(selectedYear, selectedMonth, selectedDay) { _, year, month, dayOfMonth ->
                             selectedYear = year
                             selectedMonth = month
                             selectedDay = dayOfMonth
                         }
 
+                        // Disable dates before today
                         val currentDate = Calendar.getInstance()
                         currentDate.set(Calendar.HOUR_OF_DAY, 0)
                         currentDate.set(Calendar.MINUTE, 0)

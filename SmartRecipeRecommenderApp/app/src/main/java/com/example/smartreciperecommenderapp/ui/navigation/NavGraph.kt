@@ -8,32 +8,19 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.*
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.signin.SignInScreen
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeScreen
-
 import androidx.compose.material3.*
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
-import com.example.smartreciperecommenderapp.data.repository.IngredientRepository
-import com.example.smartreciperecommenderapp.data.repository.LoginResult
-import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientViewModel
-import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientViewModelFactory
+import com.example.smartreciperecommenderapp.data.repository.*
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.*
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.barcodeResult.ProductDetailScreen
-import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerScreen
-import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerViewModel
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileRoutes
-import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
+import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.*
+import com.example.smartreciperecommenderapp.ui.ProfileScreen.*
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.favoritecuisines.FavoriteCuisinesScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.loggedin.LoggedInScreen
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.myfavorite.MyFavoriteScreen
@@ -43,6 +30,9 @@ import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModel
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
 
+/**
+ * Represents different screens in the app, each with a route and an associated icon.
+ */
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : Screen("Home", Icons.Filled.Home)
     object Account : Screen("Account", Icons.Filled.PersonOutline)
@@ -57,7 +47,10 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
     object ProductDetail : Screen("product_detail", Icons.Filled.Restaurant)
 }
 
-
+/**
+ * Navigation graph that defines all the composable screens and their transitions based on routes.
+ * It also handles login, logout, and user state changes.
+ */
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -72,11 +65,11 @@ fun NavGraph(
 
     val displayedMessages = remember { mutableSetOf<String>() }
 
-    // 是否已经导航过到LoggedIn和SignIn的标记
+    // Flags to track whether navigation to certain screens has already occurred
     var hasNavigatedToLoggedIn by remember { mutableStateOf(false) }
     var hasNavigatedToSignIn by remember { mutableStateOf(false) }
 
-    // 处理错误信息显示
+    // Show error messages using Toast, ensuring each message is displayed only once
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             if (!displayedMessages.contains(it)) {
@@ -86,7 +79,7 @@ fun NavGraph(
         }
     }
 
-    // 动态处理登录结果
+    // React to login results and handle navigation or error messages accordingly
     LaunchedEffect(loginResult) {
         when (loginResult) {
             is LoginResult.Success -> {
@@ -111,7 +104,7 @@ fun NavGraph(
         }
     }
 
-    // 邮箱验证状态
+    // Check if the user's email is verified and navigate to LoggedIn screen if it is
     LaunchedEffect(isEmailVerified) {
         if (isEmailVerified && !hasNavigatedToLoggedIn) {
             hasNavigatedToLoggedIn = true
@@ -123,7 +116,7 @@ fun NavGraph(
         }
     }
 
-    // 设置导航回调
+    // Set navigation handlers for the profileViewModel to navigate to Profile related screens
     profileViewModel.setNavigationHandlers(
         onMyFavorite = { navController.navigate(ProfileRoutes.MY_FAVORITE) },
         onFavoriteCuisines = { navController.navigate(ProfileRoutes.FAVORITE_CUISINES) },
@@ -137,7 +130,7 @@ fun NavGraph(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
-
+        // Screen for registering a username after initial user creation
         composable(ProfileRoutes.REGISTER_USERNAME) {
             RegisterUsernameScreen(
                 profileViewModel = profileViewModel,
@@ -163,6 +156,7 @@ fun NavGraph(
             )
         }
 
+        // Screen to show user's favorite ingredients or recipes
         composable(ProfileRoutes.MY_FAVORITE) {
             MyFavoriteScreen(
                 profileViewModel = profileViewModel,
@@ -170,6 +164,7 @@ fun NavGraph(
             )
         }
 
+        // Screen to show user's favorite cuisines
         composable(ProfileRoutes.FAVORITE_CUISINES) {
             FavoriteCuisinesScreen(
                 profileViewModel = profileViewModel,
@@ -177,6 +172,7 @@ fun NavGraph(
             )
         }
 
+        // Settings screen for user account and preferences management
         composable(ProfileRoutes.SETTINGS) {
             SettingsScreen(
                 profileViewModel = profileViewModel,
@@ -193,6 +189,10 @@ fun NavGraph(
         }
 
 
+
+
+        // Home screen - default entry point
+
         composable(Screen.Home.route) {
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
@@ -208,6 +208,10 @@ fun NavGraph(
         }
 
 
+
+
+        // Ingredient screen for managing the user's ingredients
+
         composable(Screen.Ingredient.route) {
             val ingredientViewModel: IngredientViewModel = viewModel(
                 factory = IngredientViewModelFactory(ingredientRepository)
@@ -220,10 +224,11 @@ fun NavGraph(
             )
         }
 
+        // Account screen that shows either SignIn or LoggedIn UI depending on user's auth state
         composable(Screen.Account.route) {
             val currentIsLoggedIn by profileViewModel.isLoggedIn.observeAsState(false)
 
-            // 如果登录了，尝试获取用户信息
+            // If user is logged in, attempt to fetch user details
             LaunchedEffect(currentIsLoggedIn) {
                 if (currentIsLoggedIn) {
                     profileViewModel.fetchUserDetails()
@@ -250,10 +255,12 @@ fun NavGraph(
             }
         }
 
+        // Barcode scanner screen to scan product barcodes and fetch details
         composable(Screen.BarcodeScanner.route) {
             QRScannerScreen(navController = navController, viewModel = qrScannerViewModel)
         }
 
+        // Product detail screen to show details of a scanned or searched product
         composable(Screen.ProductDetail.route) {
             Log.d("ProductDetailScreen", "Navigating to ProductDetailScreen")
             val ingredientViewModel: IngredientViewModel = viewModel(
@@ -268,6 +275,10 @@ fun NavGraph(
     }
 }
 
+/**
+ * A prompt displayed when the user is not logged in,
+ * encouraging them to log in to access certain features.
+ */
 @Composable
 fun LoginPrompt(
     message: String,

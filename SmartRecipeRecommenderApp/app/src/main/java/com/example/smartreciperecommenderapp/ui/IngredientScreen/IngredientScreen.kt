@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -41,6 +42,7 @@ fun IngredientScreen(
     qrScannerViewModel: QRScannerViewModel,
     ingredientViewModel: IngredientViewModel
 ) {
+    // If the user is not logged in, prompt them to do so
     if (!isLoggedIn) {
         LoginPrompt(
             message = "You are not logged in yet, please log in first to view and manage your ingredients.",
@@ -49,16 +51,19 @@ fun IngredientScreen(
     } else {
         var ingredientName by remember { mutableStateOf("") }
 
+        // Observing the searched foods state from the view model
         val searchedFoods by qrScannerViewModel.searchedFoods.collectAsState()
         var selectedFood by remember { mutableStateOf<FatSecretFood?>(null) }
 
         val coroutineScope = rememberCoroutineScope()
         var searchJob by remember { mutableStateOf<Job?>(null) }
 
+        // Load the ingredients list once when the screen appears
         LaunchedEffect(key1 = true) {
             ingredientViewModel.loadIngredients()
         }
 
+        // Debounce search: when ingredientName changes, wait 1 second before triggering search
         LaunchedEffect(ingredientName) {
             searchJob?.cancel()
             if (ingredientName.isNotBlank()) {
@@ -67,6 +72,7 @@ fun IngredientScreen(
                     qrScannerViewModel.fetchNutrientsByName(ingredientName)
                 }
             } else {
+                // Clear search results if input is empty
                 qrScannerViewModel.clearSearchedFoods()
                 selectedFood = null
             }
@@ -75,8 +81,15 @@ fun IngredientScreen(
         var showEditDialog by remember { mutableStateOf(false) }
         var editingIngredient by remember { mutableStateOf<Ingredient?>(null) }
 
+        // Observe the current list of ingredients
         val localIngredients by ingredientViewModel.ingredients.collectAsState()
 
+        val scope = rememberCoroutineScope()
+
+        // isLoading controls the display of a loading overlay
+        var isLoading by remember { mutableStateOf(false) }
+
+        // Show the edit dialog if needed
         if (showEditDialog && editingIngredient != null) {
             EditIngredientDialog(
                 ingredient = editingIngredient!!,
@@ -88,10 +101,27 @@ fun IngredientScreen(
             )
         }
 
-        val expiredIngredients = localIngredients.filter { it.expiryDate?.let { date -> calculateRemainingDays(date) < 0 } == true }
-        val nonExpiredIngredients = localIngredients.filter { it.expiryDate?.let { date -> calculateRemainingDays(date) >= 0 } != false }
+        // Separate ingredients into expired and non-expired lists
+        val expiredIngredients = localIngredients
+            .filter { it.expiryDate?.let { date -> calculateRemainingDays(date) < 0 } == true }
+            .sortedBy { it.expiryDate }
+        val nonExpiredIngredients = localIngredients
+            .filter { it.expiryDate?.let { date -> calculateRemainingDays(date) >= 0 } != false }
+            .sortedBy { it.expiryDate }
 
         var expiredExpanded by remember { mutableStateOf(false) }
+
+        // Show a full-screen loading overlay if isLoading is true
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -107,6 +137,7 @@ fun IngredientScreen(
                     .padding(16.dp)
                     .fillMaxSize()
             ) {
+                // Search field and scan barcode button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -122,7 +153,13 @@ fun IngredientScreen(
                     )
                     IconButton(
                         onClick = {
-                            navController.navigate(Screen.BarcodeScanner.route)
+                            // On click, show loading and navigate after a delay
+                            isLoading = true
+                            scope.launch {
+                                delay(500) // Simulate a brief loading process
+                                isLoading = false
+                                navController.navigate(Screen.BarcodeScanner.route)
+                            }
                         },
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
@@ -133,6 +170,7 @@ fun IngredientScreen(
                     }
                 }
 
+                // Display search results if available
                 if (searchedFoods.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier
@@ -161,12 +199,14 @@ fun IngredientScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Show the user's ingredients if there are any
                 if (localIngredients.isNotEmpty()) {
                     Text(
                         text = "Your Ingredients",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+
                     val expiredCount = expiredIngredients.size
                     if (expiredCount > 0) {
                         Row(
@@ -187,6 +227,7 @@ fun IngredientScreen(
                             )
                         }
 
+                        // Expand/collapse section for expired ingredients
                         AnimatedVisibility(visible = expiredExpanded) {
                             LazyColumn(
                                 modifier = Modifier
@@ -214,6 +255,7 @@ fun IngredientScreen(
                             }
                         }
                     }
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     val nonExpiredCount = nonExpiredIngredients.size
@@ -223,6 +265,7 @@ fun IngredientScreen(
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
+                        // List of non-expired ingredients
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -246,12 +289,12 @@ fun IngredientScreen(
                         }
                     }
                 } else {
+                    // If no ingredients are available
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         contentAlignment = Alignment.Center,
-
                     ) {
                         Text(
                             text = "You have no saved ingredients.",
@@ -273,12 +316,14 @@ fun IngredientItemCard(
 ) {
     var visible by remember { mutableStateOf(true) }
 
+    // Animate visibility changes for a smooth deletion effect
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
         LaunchedEffect(visible) {
+            // Once visibility is set to false, wait 300ms before actually deleting the item
             if (!visible) {
                 delay(300)
                 onDeleteClick()
@@ -300,6 +345,7 @@ fun IngredientItemCard(
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Ingredient image (if available) or a placeholder
                 Image(
                     painter = rememberAsyncImagePainter(model = ingredient.imageUrl ?: R.drawable.placeholder),
                     contentDescription = ingredient.name,
@@ -311,6 +357,7 @@ fun IngredientItemCard(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                // Ingredient details: name, quantity, calories, fat, expiry info
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.weight(1f)
@@ -326,6 +373,7 @@ fun IngredientItemCard(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     )
+
                     ingredient.calories?.let {
                         Text(
                             text = "Calories: $it kcal",
@@ -355,6 +403,7 @@ fun IngredientItemCard(
                     }
                 }
 
+                // Delete and Edit buttons
                 Column(
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.SpaceBetween,
@@ -388,7 +437,6 @@ fun IngredientItemCard(
         }
     }
 }
-
 
 @Composable
 fun EditIngredientDialog(
@@ -434,18 +482,26 @@ fun EditIngredientDialog(
     )
 }
 
+/**
+ * Determine the card background color based on the ingredient's expiry date.
+ * Red-ish for expired items, yellow-ish for about-to-expire, and green-ish for safe items.
+ */
 @Composable
 fun determineCardColor(expiryDate: Date?): Color {
     if (expiryDate == null) return MaterialTheme.colorScheme.surface
 
     val daysDiff = calculateRemainingDays(expiryDate)
     return when {
-        daysDiff < 0 -> Color(0xFFFFCDD2)
-        daysDiff < 3 -> Color(0xFFFFFFE0)
-        else -> Color(0xFFC8E6C9)
+        daysDiff < 0 -> Color(0xFFFFCDD2)      // Expired: Light Red
+        daysDiff < 3 -> Color(0xFFFFFFE0)      // About to expire: Light Yellow
+        else -> Color(0xFFC8E6C9)              // Safe: Light Green
     }
 }
 
+/**
+ * Calculate how many days are left until the expiry date.
+ * Negative value indicates the item is already expired.
+ */
 fun calculateRemainingDays(expiryDate: Date): Int {
     val now = System.currentTimeMillis()
     val diff = expiryDate.time - now

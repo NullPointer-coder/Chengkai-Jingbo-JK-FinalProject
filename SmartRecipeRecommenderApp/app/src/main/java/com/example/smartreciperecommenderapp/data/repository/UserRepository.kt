@@ -1,10 +1,8 @@
 package com.example.smartreciperecommenderapp.data.repository
 
-
 import android.util.Log
 import com.example.smartreciperecommenderapp.data.model.User
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -16,36 +14,46 @@ class UserRepository {
     private val usersCollection = firestore.collection("users")
     private val authHelper = AuthHelper(auth)
 
+    /**
+     * Check if the user is currently logged in.
+     */
     fun isUserLoggedIn(): Boolean {
         return auth.currentUser != null
     }
 
-
-    // Re-authenticate the user (if the session has expired)
+    /**
+     * Re-authenticate the user if the session has expired.
+     *
+     * @return true if session refreshed successfully, false otherwise.
+     */
     suspend fun refreshSessionIfNeeded(email: String, password: String): Boolean {
-        // Attempt to refresh the session token or re-authenticate
         return authHelper.refreshSessionIfNeeded(email, password)
     }
 
-    // Register user
+    /**
+     * Register a new user with the given email, password, and username.
+     * Sends a verification email after successful registration.
+     *
+     * @return a RegisterResult indicating success or failure.
+     */
     suspend fun registerUser(email: String, password: String, username: String): RegisterResult {
         return try {
-            // 创建用户
+            // Create user
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user ?: return RegisterResult.Failure("User ID is null.")
 
             Log.d("FirebaseAuth", "createUserWithEmail:success")
 
-            // 更新用户的 Display Name
+            // Update user's display name
             val profileUpdates = userProfileChangeRequest {
                 displayName = username
             }
             user.updateProfile(profileUpdates).await()
 
+            // Send verification email
             user.sendEmailVerification().await()
             Log.d("FirebaseAuth", "Verification email sent to ${user.email}")
 
-            // 注册成功，直接返回成功状态
             RegisterResult.Success(isEmailVerified = user.isEmailVerified)
         } catch (e: Exception) {
             val errorMessage = when {
@@ -58,6 +66,11 @@ class UserRepository {
         }
     }
 
+    /**
+     * Check if a user exists in Firebase by attempting to create and delete a temporary account.
+     *
+     * @return true if the user already exists, false otherwise.
+     */
     private suspend fun isUserInFirebase(email: String): Boolean {
         return try {
             FirebaseAuth.getInstance()
@@ -69,7 +82,7 @@ class UserRepository {
         } catch (e: Exception) {
             println("isUserInFirebase e.message: ${e.message}")
             when {
-               e.message?.contains("already in use") == true -> true // 用户已存在
+                e.message?.contains("already in use") == true -> true // User already exists
                 else -> {
                     println("Error checking user existence: ${e.message}")
                     false
@@ -78,18 +91,22 @@ class UserRepository {
         }
     }
 
-    // Log in user
+    /**
+     * Log in a user with email and password.
+     *
+     * @return a LoginResult indicating success, error, or user not found.
+     */
     suspend fun loginUser(email: String, password: String): LoginResult {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val user = result.user
 
             if (user != null) {
-                user.reload().await() // 确保用户信息最新
+                user.reload().await() // Ensure user info is up to date
                 return if (user.isEmailVerified) {
                     LoginResult.Success
                 } else {
-                    LoginResult.Error("Your email is not verified. Please check your inbox.") // 邮箱未激活
+                    LoginResult.Error("Your email is not verified. Please check your inbox.")
                 }
             } else {
                 LoginResult.UserNotFound
@@ -107,8 +124,11 @@ class UserRepository {
         }
     }
 
-
-    // Get the current logged-in user details
+    /**
+     * Retrieve the currently logged-in user's details from Firestore.
+     *
+     * @return a User object or null if no user is logged in or an error occurs.
+     */
     suspend fun getCurrentUser(): User? {
         val userId = auth.currentUser?.uid ?: return null
         return try {
@@ -120,6 +140,11 @@ class UserRepository {
         }
     }
 
+    /**
+     * Update the display name of the currently logged-in user.
+     *
+     * @return true if the update was successful, false otherwise.
+     */
     suspend fun updateUserDisplayName(newDisplayName: String): Boolean {
         val currentUser = auth.currentUser ?: return false
         return try {
@@ -134,6 +159,11 @@ class UserRepository {
         }
     }
 
+    /**
+     * Send a password reset email to the given email address.
+     *
+     * @return true if the email was sent successfully, false otherwise.
+     */
     suspend fun sendPasswordResetEmail(email: String): Boolean {
         return try {
             auth.sendPasswordResetEmail(email).await()
@@ -144,8 +174,9 @@ class UserRepository {
         }
     }
 
-
-    // Log out the user
+    /**
+     * Log out the currently logged-in user.
+     */
     fun logoutUser() {
         auth.signOut()
         Log.d("FirebaseAuth", "User logged out successfully.")
@@ -153,9 +184,9 @@ class UserRepository {
 }
 
 sealed class LoginResult {
-    data object Success : LoginResult()
+    object Success : LoginResult()
     data class Error(val errorMessage: String) : LoginResult()
-    data object UserNotFound : LoginResult()
+    object UserNotFound : LoginResult()
 }
 
 sealed class RegisterResult {
