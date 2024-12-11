@@ -231,7 +231,7 @@ Below are some example UI screens and functionalities captured from the current 
   ![Ingredient Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
 
 - **Barcode Scanning Function**
-  ![Barcode Scanning Function](picture/barcode_scanning_function.PNG)
+  ![Barcode Scanning Function](picture/barcode_scanning_function.JPG)
 
 - **Ingredient Screen (without Sign-in)**
   ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
