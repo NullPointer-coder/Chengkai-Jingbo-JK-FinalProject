@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
     id ("com.google.dagger.hilt.android")
+    id("com.google.firebase.crashlytics")
     id("kotlin-kapt")
 }
 
@@ -65,6 +66,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database-ktx")
 
@@ -105,6 +107,8 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp:3.0.2")
     implementation("io.ktor:ktor-serialization-gson:3.0.2")
     implementation("io.ktor:ktor-client-content-negotiation:3.0.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
 
     // Hit

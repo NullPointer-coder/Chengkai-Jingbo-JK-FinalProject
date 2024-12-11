@@ -184,6 +184,7 @@ fun IngredientScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
+                                        qrScannerViewModel.resetScan()
                                         selectedFood = food
                                         qrScannerViewModel.updateSelectedFood(food)
                                         qrScannerViewModel.clearSearchedFoods()
@@ -493,6 +494,7 @@ fun determineCardColor(expiryDate: Date?): Color {
     val daysDiff = calculateRemainingDays(expiryDate)
     return when {
         daysDiff < 0 -> Color(0xFFFFCDD2)      // Expired: Light Red
+        daysDiff == 0 -> Color(0xFFFFEBCD)     // Expires today: Orange-ish
         daysDiff < 3 -> Color(0xFFFFFFE0)      // About to expire: Light Yellow
         else -> Color(0xFFC8E6C9)              // Safe: Light Green
     }

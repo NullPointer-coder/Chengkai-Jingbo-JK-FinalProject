@@ -21,6 +21,7 @@ import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
 import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 import com.example.smartreciperecommenderapp.ui.theme.SmartRecipeRecommenderAppTheme
+import com.example.smartreciperecommenderapp.utils.NetworkMonitor
 
 class MainActivity : ComponentActivity() {
 
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val networkMonitor = NetworkMonitor(this)
 
         applicationContext.deleteDatabase("smart_recipe_db")
         // Initialize the database and dependencies in onCreate// 在onCreate中初始化数据库和依赖
@@ -54,6 +56,7 @@ class MainActivity : ComponentActivity() {
             SmartRecipeRecommenderAppTheme {
                 val navController = rememberNavController()
 
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = { BottomNavigationBar(navController) }
@@ -61,7 +64,8 @@ class MainActivity : ComponentActivity() {
                     NavGraph(
                         navController = navController,
                         profileViewModel = profileViewModel,
-                        ingredientRepository = ingredientRepository
+                        ingredientRepository = ingredientRepository,
+                        networkMonitor = networkMonitor
                     )
                 }
             }

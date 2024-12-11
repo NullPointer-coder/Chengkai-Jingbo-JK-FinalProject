@@ -1,6 +1,7 @@
 package com.example.smartreciperecommenderapp.ui.IngredientScreen.barcodeResult
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
@@ -392,6 +394,8 @@ fun ProductDetailScreen(
                 ingredient!!.calories != null && !ingredient!!.calories!!.isNaN() &&
                 ingredient!!.fat != null && !ingredient!!.fat!!.isNaN()
 
+        val context = LocalContext.current
+
         // Save FloatingActionButton
         FloatingActionButton(
             onClick = {
@@ -420,8 +424,20 @@ fun ProductDetailScreen(
                         },
                         onError = { errorMsg ->
                             Log.e("ProductDetailScreen", "Error saving ingredient: $errorMsg")
+                            Toast.makeText(
+                                context,
+                                "No Internet Connection!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
+                } else {
+
+                    Toast.makeText(
+                        context,
+                        "Please ensure ingredient name is valid and nutrients are available.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             },
             modifier = Modifier

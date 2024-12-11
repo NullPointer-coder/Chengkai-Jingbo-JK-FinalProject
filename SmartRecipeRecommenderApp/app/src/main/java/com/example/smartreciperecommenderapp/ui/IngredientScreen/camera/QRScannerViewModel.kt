@@ -138,14 +138,14 @@ class QRScannerViewModel : ViewModel() {
                 )
 
                 // 3. Process the search results
-                val foods = searchResponse.foods.food
-                _searchedFoods.value = foods
+                val foodsList = searchResponse.foods?.food ?: emptyList()
+                _searchedFoods.value = foodsList
 
-                Log.d("QRScannerViewModel", "Fetched ${foods.size} foods for $name")
-
+                Log.d("QRScannerViewModel", "Fetched ${foodsList.size} foods for $name")
             } catch (e: Exception) {
                 Log.e("QRScannerViewModel", "Error fetching nutrients by name: ${e.message}", e)
-                // Handle errors as needed, such as updating a stateFlow to indicate an error state
+                // Handle errors as needed
+                _searchedFoods.value = emptyList()
             }
         }
     }
@@ -176,21 +176,35 @@ class QRScannerViewModel : ViewModel() {
             quantity = 1.0,
             category = "General"
         )
+        Log.d("QRScannerViewModel", "Current ingredient image URL: ${current.imageUrl}")
 
         val newId = selectedFood.food_id.toIntOrNull() ?: current.id
 
         viewModelScope.launch {
             val updatedIngredient = try {
-                // Use Google image search to find an image if FatSecret does not provide one
-                val googleImage = googleImageSearchService.fetchFirstImageForFood(selectedFood.food_name)
-                Log.d("QRScannerViewModel", "Fetched image URL from Google: $googleImage")
+                when {
+                    // If current ingredient already has an image URL, use it
+                    current.imageUrl != null -> {
+                        current.copy(
+                            id = newId,
+                            calories = caloriesValue,
+                            fat = fatValue,
+                            imageUrl = current.imageUrl
+                        )
+                    }
+                    else -> {
+                        // If no current imageUrl and no valid food_url, fallback to Google search
+                        val googleImage = googleImageSearchService.fetchFirstImageForFood(selectedFood.food_name)
+                        Log.d("QRScannerViewModel", "Fetched image URL from Google: $googleImage")
 
-                current.copy(
-                    id = newId,
-                    calories = caloriesValue,
-                    fat = fatValue,
-                    imageUrl = googleImage ?: current.imageUrl
-                )
+                        current.copy(
+                            id = newId,
+                            calories = caloriesValue,
+                            fat = fatValue,
+                            imageUrl = googleImage
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 Log.e("QRScannerViewModel", "Error fetching image from Google: ${e.message}", e)
                 current.copy(
@@ -209,10 +223,5 @@ class QRScannerViewModel : ViewModel() {
      */
     fun clearSearchedFoods() {
         _searchedFoods.value = emptyList()
-        _error.value = null
-        _scanResult.value = null
-        _productDetails.value = null
-        _productImage.value = null
-        _ingredient.value = null
     }
 }

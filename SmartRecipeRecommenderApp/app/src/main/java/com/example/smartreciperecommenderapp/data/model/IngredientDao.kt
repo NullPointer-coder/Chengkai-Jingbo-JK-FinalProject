@@ -31,4 +31,13 @@ interface IngredientDao {
 
     @Query("UPDATE ingredient SET quantity = :quantity WHERE instanceId = :instanceId")
     suspend fun updateIngredientQuantity(instanceId: Int, quantity: Double)
+
+    @Query("UPDATE ingredient SET pendingSync = :pending WHERE instanceId = :instanceId")
+    suspend fun markPendingSync(instanceId: Int, pending: Boolean)
+
+    @Query("UPDATE ingredient SET deleted = :deleted WHERE instanceId = :instanceId")
+    suspend fun markAsDeleted(instanceId: Int, deleted: Boolean)
+
+    @Query("SELECT * FROM ingredient WHERE deleted = 0")
+    suspend fun getAllActiveIngredients(): List<IngredientEntity>
 }
