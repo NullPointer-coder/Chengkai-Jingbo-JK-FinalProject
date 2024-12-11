@@ -181,16 +181,26 @@ class QRScannerViewModel : ViewModel() {
 
         viewModelScope.launch {
             val updatedIngredient = try {
-                // Use Google image search to find an image if FatSecret does not provide one
-                val googleImage = googleImageSearchService.fetchFirstImageForFood(selectedFood.food_name)
-                Log.d("QRScannerViewModel", "Fetched image URL from Google: $googleImage")
+                // If the current ingredient already has an image URL, use it directly
+                // Otherwise, try to fetch one from Google
+                if (current.imageUrl != null) {
+                    current.copy(
+                        id = newId,
+                        calories = caloriesValue,
+                        fat = fatValue,
+                        imageUrl = current.imageUrl
+                    )
+                }else {
+                        val googleImage = googleImageSearchService.fetchFirstImageForFood(selectedFood.food_name)
+                        Log.d("QRScannerViewModel", "Fetched image URL from Google: $googleImage")
 
-                current.copy(
-                    id = newId,
-                    calories = caloriesValue,
-                    fat = fatValue,
-                    imageUrl = googleImage ?: current.imageUrl
-                )
+                        current.copy(
+                            id = newId,
+                            calories = caloriesValue,
+                            fat = fatValue,
+                            imageUrl = googleImage ?: current.imageUrl
+                        )
+                }
             } catch (e: Exception) {
                 Log.e("QRScannerViewModel", "Error fetching image from Google: ${e.message}", e)
                 current.copy(
@@ -209,10 +219,5 @@ class QRScannerViewModel : ViewModel() {
      */
     fun clearSearchedFoods() {
         _searchedFoods.value = emptyList()
-        _error.value = null
-        _scanResult.value = null
-        _productDetails.value = null
-        _productImage.value = null
-        _ingredient.value = null
     }
 }
