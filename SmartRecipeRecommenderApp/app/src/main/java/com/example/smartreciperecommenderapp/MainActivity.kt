@@ -17,6 +17,8 @@ import com.example.smartreciperecommenderapp.data.repository.UserRepository
 import com.example.smartreciperecommenderapp.ui.BottomNavigationBar
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
+import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
+import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
 import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 import com.example.smartreciperecommenderapp.ui.theme.SmartRecipeRecommenderAppTheme
 
@@ -34,6 +36,7 @@ class MainActivity : ComponentActivity() {
             AppDatabase::class.java,
             "smart_recipe_db"
         ).build()
+
 
         val firebaseIngredientService = FirebaseIngredientService()
         val ingredientDao = database.ingredientDao()

@@ -22,7 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.smartreciperecommenderapp.R
+import com.example.smartreciperecommenderapp.R 
 import com.example.smartreciperecommenderapp.data.model.Ingredient
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerViewModel
 import com.example.smartreciperecommenderapp.ui.api.FatSecretFood
