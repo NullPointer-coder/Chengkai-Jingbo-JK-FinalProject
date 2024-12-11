@@ -424,6 +424,11 @@ fun ProductDetailScreen(
                         },
                         onError = { errorMsg ->
                             Log.e("ProductDetailScreen", "Error saving ingredient: $errorMsg")
+                            Toast.makeText(
+                                context,
+                                "No Internet Connection!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
                 } else {

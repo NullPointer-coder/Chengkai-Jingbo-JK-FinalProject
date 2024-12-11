@@ -29,6 +29,7 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.settingsScreen.Set
 import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModel
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
+import com.example.smartreciperecommenderapp.utils.NetworkMonitor
 
 /**
  * Represents different screens in the app, each with a route and an associated icon.
@@ -55,7 +56,8 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 fun NavGraph(
     navController: NavHostController,
     profileViewModel: ProfileViewModel,
-    ingredientRepository: IngredientRepository
+    ingredientRepository: IngredientRepository,
+    networkMonitor: NetworkMonitor
 ) {
     val qrScannerViewModel: QRScannerViewModel = viewModel()
     val loginResult by profileViewModel.loginResult.observeAsState()
@@ -214,7 +216,7 @@ fun NavGraph(
 
         composable(Screen.Ingredient.route) {
             val ingredientViewModel: IngredientViewModel = viewModel(
-                factory = IngredientViewModelFactory(ingredientRepository)
+                factory = IngredientViewModelFactory(ingredientRepository, networkMonitor)
             )
             IngredientScreen(
                 navController = navController,
@@ -264,7 +266,7 @@ fun NavGraph(
         composable(Screen.ProductDetail.route) {
             Log.d("ProductDetailScreen", "Navigating to ProductDetailScreen")
             val ingredientViewModel: IngredientViewModel = viewModel(
-                factory = IngredientViewModelFactory(ingredientRepository)
+                factory = IngredientViewModelFactory(ingredientRepository, networkMonitor)
             )
             ProductDetailScreen(
                 navController = navController,

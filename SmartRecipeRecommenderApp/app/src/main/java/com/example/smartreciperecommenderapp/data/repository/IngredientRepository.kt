@@ -79,4 +79,26 @@ class IngredientRepository(
         // Update Firebase
         firebaseService.updateIngredientQuantity(instanceId, quantity)
     }
+
+    /**
+     * Delete an ingredient locally by marking it as deleted and pending sync.
+     * This does not sync with Firebase immediately.
+     */
+    suspend fun deleteIngredientLocally(ingredient: Ingredient) {
+        ingredientDao.markAsDeleted(ingredient.instanceId, true)
+        ingredientDao.markPendingSync(ingredient.instanceId, true)
+    }
+
+
+    /**
+     * Update the quantity of an ingredient locally and mark it as pending sync.
+     * This does not sync with Firebase immediately.
+     */
+    suspend fun updateIngredientQuantityLocally(instanceId: Int, quantity: Double) = withContext(Dispatchers.IO) {
+        // Update local quantities
+        ingredientDao.updateIngredientQuantity(instanceId, quantity)
+        // Marked for synchronization
+        ingredientDao.markPendingSync(instanceId, true)
+    }
+
 }

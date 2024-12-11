@@ -15,8 +15,11 @@ data class IngredientEntity(
     val expiryDate: Long?,
     val imageUrl: String?,
     val calories: Double?,
-    val fat: Double?
-) {
+    val fat: Double?,
+    val pendingSync: Boolean = false,
+    val deleted: Boolean = false
+){
+
     fun toIngredient(): Ingredient {
         return Ingredient(
             id = id,
@@ -28,7 +31,7 @@ data class IngredientEntity(
             expiryDate = expiryDate?.let { Date(it) },
             imageUrl = imageUrl,
             calories = calories,
-            fat = fat
+            fat = fat,
         )
     }
 
