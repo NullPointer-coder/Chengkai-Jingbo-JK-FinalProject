@@ -5,6 +5,7 @@ import com.example.smartreciperecommenderapp.data.model.Ingredient
 import com.example.smartreciperecommenderapp.data.model.IngredientDao
 import com.example.smartreciperecommenderapp.data.model.IngredientEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class IngredientRepository(
@@ -99,6 +100,15 @@ class IngredientRepository(
         ingredientDao.updateIngredientQuantity(instanceId, quantity)
         // Marked for synchronization
         ingredientDao.markPendingSync(instanceId, true)
+    }
+
+    /**
+     * To expose a Flow of ingredients
+     */
+    fun getAllIngredientsFlow(): kotlinx.coroutines.flow.Flow<List<Ingredient>> {
+        return ingredientDao.getAllIngredientsFlow().map { entities ->
+            entities.map { it.toIngredient() }
+        }
     }
 
 }

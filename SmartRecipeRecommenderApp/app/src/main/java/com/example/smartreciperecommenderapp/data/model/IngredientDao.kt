@@ -40,4 +40,7 @@ interface IngredientDao {
 
     @Query("SELECT * FROM ingredient WHERE deleted = 0")
     suspend fun getAllActiveIngredients(): List<IngredientEntity>
+
+    @Query("SELECT * FROM ingredient")
+    fun getAllIngredientsFlow(): kotlinx.coroutines.flow.Flow<List<IngredientEntity>>
 }

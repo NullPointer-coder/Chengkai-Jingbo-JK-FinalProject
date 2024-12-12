@@ -13,6 +13,8 @@ import androidx.room.Room
 import com.example.smartreciperecommenderapp.data.model.AppDatabase
 import com.example.smartreciperecommenderapp.data.repository.FirebaseIngredientService
 import com.example.smartreciperecommenderapp.data.repository.IngredientRepository
+import com.example.smartreciperecommenderapp.data.repository.RecipeDetailRepository
+import com.example.smartreciperecommenderapp.data.repository.RecipeRepository
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
 import com.example.smartreciperecommenderapp.ui.BottomNavigationBar
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
@@ -39,11 +41,20 @@ class MainActivity : ComponentActivity() {
             "smart_recipe_db"
         ).build()
 
-
+        // Initialize IngredientRepository
         val firebaseIngredientService = FirebaseIngredientService()
         val ingredientDao = database.ingredientDao()
         ingredientRepository = IngredientRepository(ingredientDao, firebaseIngredientService)
 
+        // Initialize RecipeRepository
+        val recipeDao = database.recipeDao()
+        val recipeRepository = RecipeRepository(recipeDao)
+
+        // Initialize RecipeDetailRepository
+        val recipeDetailDao = database.recipeDetailDao()
+        val recipeDetailRepository = RecipeDetailRepository(recipeDetailDao)
+
+        // Initialize UserRepository and ProfileViewModel
         val userRepository = UserRepository()
         val profileViewModel: ProfileViewModel = ViewModelProvider(
             this,
@@ -65,6 +76,8 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         profileViewModel = profileViewModel,
                         ingredientRepository = ingredientRepository,
+                        recipeRepository = recipeRepository,
+                        recipeDetailRepository = recipeDetailRepository,
                         networkMonitor = networkMonitor
                     )
                 }

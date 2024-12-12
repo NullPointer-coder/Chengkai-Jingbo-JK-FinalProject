@@ -57,6 +57,8 @@ fun NavGraph(
     navController: NavHostController,
     profileViewModel: ProfileViewModel,
     ingredientRepository: IngredientRepository,
+    recipeRepository: RecipeRepository,
+    recipeDetailRepository: RecipeDetailRepository,
     networkMonitor: NetworkMonitor
 ) {
     val qrScannerViewModel: QRScannerViewModel = viewModel()
@@ -199,7 +201,10 @@ fun NavGraph(
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
                     ingredientRepository = ingredientRepository,
-                    fatSecretService = fatSecretService
+                    fatSecretService = fatSecretService,
+                    recipeRepository = recipeRepository,
+                    recipeDetailRepository = recipeDetailRepository,
+                    networkMonitor = networkMonitor
                 )
             )
             HomeScreen(

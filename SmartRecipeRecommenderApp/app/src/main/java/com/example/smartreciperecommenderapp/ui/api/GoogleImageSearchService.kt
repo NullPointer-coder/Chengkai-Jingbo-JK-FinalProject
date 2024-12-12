@@ -9,6 +9,18 @@ import io.ktor.serialization.gson.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+
+/**
+ * Data class to hold the configuration for Google Custom Search Engine.
+ *
+ * @property apiKey Your Google CSE API key.
+ * @property cseCx Your Custom Search Engine ID.
+ */
+data class GoogleSearchConfig(
+    val apiKey: String = "AIzaSyD48oYqtdfpWNI_6Su4h7bL9B6408K2W4U",
+    val cseCx: String = "f617f7ad9a77d4d7e"
+)
+
 /**
  * A service that uses the Google Custom Search Engine (CSE) API to fetch the first image result
  * for a given food name. This can be used to provide a relevant image for an ingredient or dish.

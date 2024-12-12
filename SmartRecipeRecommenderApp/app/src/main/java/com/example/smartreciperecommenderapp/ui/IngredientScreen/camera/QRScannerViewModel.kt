@@ -7,11 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.smartreciperecommenderapp.data.model.Ingredient
 import com.example.smartreciperecommenderapp.ui.api.FatSecretFood
 import com.example.smartreciperecommenderapp.ui.api.GoogleImageSearchService
+import com.example.smartreciperecommenderapp.ui.api.GoogleSearchConfig
 import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.io.IOException
 
 /**
@@ -43,8 +43,8 @@ class QRScannerViewModel : ViewModel() {
 
     // Google Image Search service for fetching product images
     private val googleImageSearchService = GoogleImageSearchService(
-        apiKey = "AIzaSyD48oYqtdfpWNI_6Su4h7bL9B6408K2W4U",
-        cseCx = "f617f7ad9a77d4d7e"
+        apiKey = GoogleSearchConfig().apiKey,
+        cseCx = GoogleSearchConfig().cseCx,
     )
 
     /**
