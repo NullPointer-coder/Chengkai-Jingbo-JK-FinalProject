@@ -213,7 +213,7 @@ Below are some example UI screens and functionalities captured from the current 
 - **Ingredient Screen (without Sign-in)**
   ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
 
-  - **Account Screen (without Sign-in)**
+- **Account Screen (without Sign-in)**
   ![Account Screen without Sign-in](picture/acountScreen_without_siginin.png)
 
 - **Home Screen (with Sign-in)**
