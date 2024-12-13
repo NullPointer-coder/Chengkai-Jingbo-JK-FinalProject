@@ -39,8 +39,20 @@ fun getStepIconResource(directionDescription: String): Int {
         // Frying, sautéing
         descLower.contains("fry") || descLower.contains("saute") || descLower.contains("sauté") -> R.drawable.ic_pan
 
+        // Serving related terms
+        descLower.contains("serve") ||
+                descLower.contains("plate") ||
+                descLower.contains("plating") ||
+                descLower.contains("dish out") ||
+                descLower.contains("dish up") ||
+                descLower.contains("present") ||
+                descLower.contains("portion") ||
+                descLower.contains("transfer") ||
+                descLower.contains("set aside") ||
+                descLower.contains("garnish and serve") ||
+                descLower.contains("transfer to serving") -> R.drawable.ic_serve
+
         // No specific keywords matched, use a generic cooking icon
         else -> R.drawable.ic_cooking_generic
     }
-
 }

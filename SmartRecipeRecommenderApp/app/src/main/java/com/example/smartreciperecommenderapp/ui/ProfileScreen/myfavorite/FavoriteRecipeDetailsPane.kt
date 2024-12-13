@@ -1,6 +1,5 @@
-package com.example.smartreciperecommenderapp.ui.homeScreen.units
+package com.example.smartreciperecommenderapp.ui.ProfileScreen.myfavorite
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,19 +19,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Fireplace
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -40,7 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -59,17 +54,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.smartreciperecommenderapp.data.model.RecipeDetailModel
-import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModel
+import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
+import com.example.smartreciperecommenderapp.ui.homeScreen.units.DirectionsWithFullScreenOverlay
+import com.example.smartreciperecommenderapp.ui.homeScreen.units.IngredientsSection
+import com.example.smartreciperecommenderapp.ui.homeScreen.units.MacrosDonutChart
+import com.example.smartreciperecommenderapp.ui.homeScreen.units.NutritionFactsLabel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun RecipeDetailsPane(
-    homeViewModel: HomeViewModel,
+fun FavoriteRecipeDetailsPane(
     recipeDetails: RecipeDetailModel?,
+    profileViewModel: ProfileViewModel,
     modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null
 ) {
-    // If no recipe details are available, show a hint
+// If no recipe details are available, show a hint
     if (recipeDetails == null) {
         Box(
             modifier = modifier
@@ -89,7 +88,7 @@ fun RecipeDetailsPane(
     var isFavorited by remember { mutableStateOf(false) }
 
     LaunchedEffect(recipeDetails.recipeId) {
-        val result = homeViewModel.isRecipeFavorite(recipeDetails.recipeId)
+        val result = profileViewModel.isRecipeFavorite(recipeDetails.recipeId)
         isFavorited = result
     }
 
@@ -97,11 +96,11 @@ fun RecipeDetailsPane(
     val mainImageUrl = recipeDetails.imageUrl
 
     // Fetch parsed data from ViewModel
-    val categories = homeViewModel.getCategories(recipeDetails)
-    val types = homeViewModel.getTypes(recipeDetails)
-    val servingSizes = homeViewModel.getServingSizes(recipeDetails)
-    val ingredients = homeViewModel.getIngredients(recipeDetails)
-    val directions = homeViewModel.getDirections(recipeDetails)
+    val categories = profileViewModel.getCategories(recipeDetails)
+    val types = profileViewModel.getTypes(recipeDetails)
+    val servingSizes = profileViewModel.getServingSizes(recipeDetails)
+    val ingredients = profileViewModel.getIngredients(recipeDetails)
+    val directions = profileViewModel.getDirections(recipeDetails)
 
     Scaffold(
         topBar = {
@@ -129,11 +128,11 @@ fun RecipeDetailsPane(
                     IconButton(onClick = {
                         if (isFavorited) {
                             // If currently favorited, remove it from favorites
-                            homeViewModel.removeRecipeFromFavorite(recipeDetails)
+                            profileViewModel.removeRecipeFromFavorite(recipeDetails)
                             isFavorited = false
                         } else {
                             // If not favorited, add it to favorites
-                            homeViewModel.saveMyFavoriteRecipe(recipeDetails)
+                            profileViewModel.saveMyFavoriteRecipe(recipeDetails)
                             isFavorited = true
                         }
                     }) {
@@ -454,7 +453,7 @@ fun RecipeDetailsPane(
 
                 // Add some spacing at the bottom
                 item {
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
         }

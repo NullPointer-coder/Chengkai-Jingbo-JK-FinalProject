@@ -426,13 +426,12 @@ fun ProductDetailScreen(
                             Log.e("ProductDetailScreen", "Error saving ingredient: $errorMsg")
                             Toast.makeText(
                                 context,
-                                "No Internet Connection!",
+                                "No network connection available",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     )
                 } else {
-
                     Toast.makeText(
                         context,
                         "Please ensure ingredient name is valid and nutrients are available.",

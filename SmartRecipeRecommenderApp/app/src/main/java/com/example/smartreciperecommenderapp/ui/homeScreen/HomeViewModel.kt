@@ -108,62 +108,82 @@ class HomeViewModel(
             _isLoading.value = true
             try {
                 if (recipeId == 0L) {
+                    Log.d("HomeViewModel", "recipeId == 0L, clearing details.")
                     // Clear details
                     _selectedRecipeDetails.value = null
                     return@launch
                 }
 
-                // Try to load details from DB first
+                Log.d("HomeViewModel", "Checking local details from DB...")
                 val localDetails = recipeDetailRepository.getRecipeDetailsFromDB(recipeId)
                 if (localDetails != null) {
+                    Log.d("HomeViewModel", "Loaded recipe details from local DB. localDetails: $localDetails")
                     // We have cached details, now fetch imageUrl from recipeRepository
                     val imageUrl = recipeRepository.getRecipeImageUrlById(recipeId)
                     val updatedDetails = if (imageUrl != null) {
+                        Log.d("HomeViewModel", "Found imageUrl from repo: $imageUrl")
                         localDetails.copy(imageUrl = imageUrl)
                     } else {
+                        Log.d("HomeViewModel", "No imageUrl found from repo.")
                         localDetails
                     }
                     _selectedRecipeDetails.value = updatedDetails
-                    Log.d("HomeViewModel", "Loaded recipe details from local DB.")
                 } else {
+                    Log.d("HomeViewModel", "No local details found. Need network.")
                     // No local details, need network
                     if (!networkMonitor.isConnected.value) {
+                        Log.d("HomeViewModel", "No network, returning early.")
                         _errorMessage.value = "No network connection available."
                         return@launch
                     }
 
+                    Log.d("HomeViewModel", "Fetching access token...")
                     val tokenResponse = RetrofitInstance.fatSecretAuthApi.getAccessToken()
                     val accessToken = tokenResponse.access_token
+                    Log.d("HomeViewModel", "Got access token: $accessToken")
 
+                    Log.d("HomeViewModel", "Requesting recipe details from API...")
                     val response = fatSecretService.searchRecipesDetails(
                         authorization = "Bearer $accessToken",
                         id = recipeId
                     )
 
                     val details = response.recipe
-                    Log.d("HomeViewModel", "Loaded recipe details from API.")
+                    Log.d("HomeViewModel", "Loaded recipe details from API: $details")
                     // Store details locally
+                    Log.d("HomeViewModel", "Storing recipe details in DB...")
                     recipeDetailRepository.storeRecipeDetails(details)
 
-                    // After storing, load from DB to get RecipeDetailModel
+                    Log.d("HomeViewModel", "Reading recipe details back from DB...")
                     val fromDB = recipeDetailRepository.getRecipeDetailsFromDB(recipeId)
+                    Log.d("HomeViewModel", "fromDB: $fromDB")
                     if (fromDB != null) {
                         val imageUrl = recipeRepository.getRecipeImageUrlById(recipeId)
                         val finalDetails = if (imageUrl != null) {
+                            Log.d("HomeViewModel", "Found imageUrl from repo: $imageUrl")
                             fromDB.copy(imageUrl = imageUrl)
                         } else {
+                            Log.d("HomeViewModel", "No imageUrl found from repo after storing details.")
                             fromDB
                         }
                         _selectedRecipeDetails.value = finalDetails
                     } else {
+                        Log.d("HomeViewModel", "Failed to load details from DB after storing.")
                         // In case of any unexpected error, just show what we have
                         _selectedRecipeDetails.value = null
                     }
                 }
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Error loading recipe details", e)
-                _errorMessage.value = "Failed to load recipe details."
+                val errorMessage = when (e) {
+                    is java.net.UnknownHostException -> "Network error: Unable to load recipes. Please check your internet connection."
+                    is java.net.SocketTimeoutException -> "Network error: Request timed out. Please try again."
+                    else -> "Failed to load recipes. Please try again later."
+                }
+                Log.d("HomeViewModel", "Setting _errorMessage to: $errorMessage")
+                _errorMessage.value = errorMessage
             } finally {
+                Log.d("HomeViewModel", "Finished loading details, isLoading = false")
                 _isLoading.value = false
             }
         }
@@ -180,6 +200,7 @@ class HomeViewModel(
             } else {
                 // Offline: no sync
                 Log.d("HomeViewModel", "No internet connection. Loading offline data from Room.")
+                _errorMessage.value = "No network connection available."
             }
 
             try {
@@ -300,8 +321,12 @@ class HomeViewModel(
 
                 _recipes.value = updatedModels
             } catch (e: Exception) {
-                Log.e("HomeViewModel", "Error refreshing recipes locally", e)
-                _errorMessage.value = "Failed to refresh recipes. Please try again."
+                val errorMessage = when (e) {
+                    is java.net.UnknownHostException -> "Network error: Unable to load recipes. Please check your internet connection."
+                    is java.net.SocketTimeoutException -> "Network error: Request timed out. Please try again."
+                    else -> "Failed to load recipes. Please try again later."
+                }
+                _errorMessage.value = errorMessage
             } finally {
                 _isLoading.value = false
             }

@@ -1,9 +1,12 @@
 package com.example.smartreciperecommenderapp.data.repository
 
 import android.util.Log
+import com.example.smartreciperecommenderapp.data.model.RecipeDetailModel
+import com.example.smartreciperecommenderapp.data.model.RecipeModel
 import com.example.smartreciperecommenderapp.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -13,6 +16,33 @@ class UserRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val usersCollection = firestore.collection("users")
     private val authHelper = AuthHelper(auth)
+
+    private val realtimeDatabase = FirebaseDatabase.getInstance()
+
+    suspend fun fetchUserFavoriteRecipeDetail(uid: String): List<RecipeDetailModel> {
+        return try {
+            val favoritesRef = realtimeDatabase.getReference("users").child(uid).child("favorites")
+            val dataSnapshot = favoritesRef.get().await()
+
+            if (!dataSnapshot.exists()) {
+                // No favorites node
+                return emptyList()
+            }
+
+            val resultList = mutableListOf<RecipeDetailModel>()
+            for (childSnapshot in dataSnapshot.children) {
+                val recipe = childSnapshot.getValue(RecipeDetailModel::class.java)
+                if (recipe != null) {
+                    resultList.add(recipe)
+                }
+            }
+            Log.d("UserRepository", "resultList: $resultList")
+            resultList
+        } catch (e: Exception) {
+            println("Error fetching favorites: ${e.message}")
+            emptyList()
+        }
+    }
 
     /**
      * Check if the user is currently logged in.
