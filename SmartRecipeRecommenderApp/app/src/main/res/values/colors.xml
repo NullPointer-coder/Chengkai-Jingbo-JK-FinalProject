@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="notification_color">#FF4081</color>
+
+    <!-- Primary Color Palette -->
+    <color name="primary">#6200EE</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#BB86FC</color>
+    <color name="on_primary_container">#3700B3</color>
+
+    <!-- Secondary Color Palette -->
+    <color name="secondary">#03DAC6</color>
+    <color name="on_secondary">#000000</color>
+    <color name="secondary_container">#018786</color>
+    <color name="on_secondary_container">#FFFFFF</color>
+
+    <!-- Control Colors -->
+    <color name="control_normal">#9E9E9E</color>
+    <color name="control_activated">#FF4081</color>
+    <color name="control_highlight">#FF4081</color>
+</resources>
