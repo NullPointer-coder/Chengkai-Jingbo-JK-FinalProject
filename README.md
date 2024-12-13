@@ -210,26 +210,26 @@ Below are some example UI screens and functionalities captured from the current 
 - **Home Screen (without Sign-in)**
   ![Home Screen without Sign-in](picture/homeScreen_without_sginIn.png)
 
-- **Ingredient Detail**
-  ![Ingredient Detail](picture/ingredient_detail.png)
-
-  - **Account Screen (with Sign-in)**
-  ![Account Screen with Sign-in](picture/acountScreen_with_siginin.png)
-
-- **Home Screen (with Sign-in)**
-  ![Home Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
-
-- **Recipe Detail Screen (with Sign-in)**
-![Recipe Detail Screen with Sign-in](picture/recipeDetail.gif)
-
-- **Ingredient Screen (with Sign-in)**
-  ![Ingredient Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
+- **Ingredient Screen (without Sign-in)**
+  ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
 
   - **Account Screen (without Sign-in)**
   ![Account Screen without Sign-in](picture/acountScreen_without_siginin.png)
 
+- **Home Screen (with Sign-in)**
+  ![Home Screen with Sign-in](picture/homeScreen_with_siginIn.png)
+
+- **Ingredient Screen (with Sign-in)**
+  ![Ingredient Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
+
+  - **Account Screen (with Sign-in)**
+  ![Account Screen with Sign-in](picture/acountScreen_with_siginin.png)
+
+- **Recipe Detail Screen (with Sign-in)**
+  ![Recipe Detail Screen with Sign-in](picture/recipeDetail.gif)
+
+- **Ingredient Detail**
+  ![Ingredient Detail](picture/ingredient_detail.png)
+
 - **Barcode Scanning Function**
   ![Barcode Scanning Function](picture/barcode_scanning_function.JPG)
-
-- **Ingredient Screen (without Sign-in)**
-  ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
