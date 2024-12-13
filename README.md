@@ -207,29 +207,29 @@ lightSensor?.let {
 
 Below are some example UI screens and functionalities captured from the current directory:
 
-- **Home Screen (without Sign-in)**
-  ![Home Screen without Sign-in](picture/homeScreen_without_sginIn.png)
+### Home Screen (Without Sign-in)  
+![Home Screen (Without Sign-in)](picture/homeScreen_without_signIn.png)
 
-- **Ingredient Screen (without Sign-in)**
-  ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
+### Ingredient Screen (Without Sign-in)  
+![Ingredient Screen (Without Sign-in)](picture/ingredientScreen_without_signIn.png)
 
-- **Account Screen (without Sign-in)**
-  ![Account Screen without Sign-in](picture/acountScreen_without_siginin.png)
+### Account Screen (Without Sign-in)  
+![Account Screen (Without Sign-in)](picture/accountScreen_without_signIn.png)
 
-- **Home Screen (with Sign-in)**
-  ![Home Screen with Sign-in](picture/homeScreen_with_siginIn.png)
+### Home Screen (With Sign-in)  
+![Home Screen (With Sign-in)](picture/homeScreen_with_signIn.png)
 
-- **Ingredient Screen (with Sign-in)**
-  ![Ingredient Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
+### Ingredient Screen (With Sign-in)  
+![Ingredient Screen (With Sign-in)](picture/ingredientScreen_with_signIn.png)
 
-- **Account Screen (with Sign-in)**
-  ![Account Screen with Sign-in](picture/acountScreen_with_siginin.png)
+### Account Screen (With Sign-in)  
+![Account Screen (With Sign-in)](picture/accountScreen_with_signIn.png)
 
-- **Recipe Detail Screen (with Sign-in)**
-  ![Recipe Detail Screen with Sign-in](picture/recipeDetail.gif)
+### Recipe Detail Screen (With Sign-in)  
+![Recipe Detail Screen (With Sign-in)](picture/recipeDetail.gif)
 
-- **Ingredient Detail**
-  ![Ingredient Detail](picture/ingredient_detail.png)
+### Ingredient Detail  
+![Ingredient Detail](picture/ingredient_detail.png)
 
-- **Barcode Scanning Function**
-  ![Barcode Scanning Function](picture/barcode_scanning_function.JPG)
+### Barcode Scanning Function  
+![Barcode Scanning Function](picture/barcode_scanning_function.JPG)
