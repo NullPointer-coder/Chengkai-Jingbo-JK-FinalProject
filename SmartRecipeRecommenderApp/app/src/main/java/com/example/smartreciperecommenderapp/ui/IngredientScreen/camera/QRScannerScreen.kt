@@ -21,6 +21,10 @@ fun QRScannerScreen(
     navController: NavController,
     viewModel: QRScannerViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.resetScan()
+    }
+    
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
     val scanResult by viewModel.scanResult.collectAsState()
     val ingredient by viewModel.ingredient.collectAsState()
@@ -51,13 +55,11 @@ fun QRScannerScreen(
                 }
             } else {
                 // Once scanning is done and result is available
-                Log.d("QRScannerScreen", "Scan Result: $scanResult")
                 LaunchedEffect(ingredient) {
-                    Log.d("QRScannerScreen", "Ingredient: $ingredient")
-                    ingredient?.let {
-                        Log.d("QRScannerScreen", "Ingredient Details: ${it.name}")
-                        // Navigate to the product details screen once ingredient data is obtained
-                        navController.navigate(Screen.ProductDetail.route)
+                    ingredient?.let { ing ->
+                        if (ing.name.isNotBlank()) {
+                            navController.navigate(Screen.ProductDetail.route)
+                        }
                     }
                 }
             }
