@@ -65,8 +65,9 @@ import com.example.smartreciperecommenderapp.ui.homeScreen.units.NutritionFactsL
 fun FavoriteRecipeDetailsPane(
     recipeDetails: RecipeDetailModel?,
     profileViewModel: ProfileViewModel,
-    modifier: Modifier = Modifier,
-    onBackClick: (() -> Unit)? = null
+    onBackClick: (() -> Unit)? = null,
+    isLandscape: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
 // If no recipe details are available, show a hint
     if (recipeDetails == null) {
@@ -77,7 +78,7 @@ fun FavoriteRecipeDetailsPane(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Select a recipe to view details.",
+                text = "Select a favorite recipe to view details.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -103,6 +104,7 @@ fun FavoriteRecipeDetailsPane(
     val directions = profileViewModel.getDirections(recipeDetails)
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             // Top bar with recipe name and optional back button
             TopAppBar(
@@ -114,7 +116,7 @@ fun FavoriteRecipeDetailsPane(
                     )
                 },
                 navigationIcon = {
-                    if (onBackClick != null) {
+                    if (!isLandscape && onBackClick != null) {
                         IconButton(onClick = { onBackClick() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
