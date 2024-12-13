@@ -66,8 +66,9 @@ import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModel
 fun RecipeDetailsPane(
     homeViewModel: HomeViewModel,
     recipeDetails: RecipeDetailModel?,
-    modifier: Modifier = Modifier,
-    onBackClick: (() -> Unit)? = null
+    onBackClick: (() -> Unit)? = null,
+    isLandscape: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     // If no recipe details are available, show a hint
     if (recipeDetails == null) {
@@ -104,6 +105,7 @@ fun RecipeDetailsPane(
     val directions = homeViewModel.getDirections(recipeDetails)
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             // Top bar with recipe name and optional back button
             TopAppBar(
@@ -115,7 +117,7 @@ fun RecipeDetailsPane(
                     )
                 },
                 navigationIcon = {
-                    if (onBackClick != null) {
+                    if (!isLandscape && onBackClick != null) {
                         IconButton(onClick = { onBackClick() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -152,7 +154,6 @@ fun RecipeDetailsPane(
         content = { paddingValues ->
             LazyColumn(
                 modifier = modifier
-                    .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .padding(paddingValues),
                 state = scrollState,
