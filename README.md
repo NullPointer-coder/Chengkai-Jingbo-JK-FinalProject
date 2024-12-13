@@ -13,6 +13,29 @@ Fridgify
 ## Brief
 A Personalized Recipe Solution to Reduce Food Waste and Simplify Meal Planning
 
+## Project Description
+
+This application provides a range of UI examples and feature demonstrations, including the ability to browse recipes and ingredients, and experience different layouts depending on whether the user is signed in. By leveraging modern Android technologies and libraries, it offers a seamless, responsive, and engaging user experience.
+
+**Key Features**:
+- **Android Compatibility:**  
+  Optimized for Android devices with support starting from `minSdk 24` and targeting `targetSdk 34`, ensuring compatibility across a wide spectrum of phones and tablets.
+  
+- **Modern UI with Jetpack Compose:**  
+  Utilizes Jetpack Compose for building UI elements, offering responsive design that adapts to both portrait and landscape orientations.
+  
+- **Dynamic Layouts for Multiple Form Factors:**  
+  Responsive layouts that scale elegantly between smartphones and tablets, providing an optimized interface for every screen size.
+  
+- **Advanced Scanning and Recognition:**  
+  Integrates with ML Kit’s barcode scanning for easy ingredient identification, enhancing user convenience and interaction.
+  
+- **Robust Data Handling:**  
+  Employs Room for efficient local data storage, and leverages Retrofit and OkHttp for network communication. This ensures smooth, reliable data retrieval and management.
+  
+- **Firebase Integration:**  
+  Incorporates Firebase services for authentication, analytics, cloud data management, and crash reporting, enabling a secure, scalable, and data-driven application.
+
 ## APIs Used
 
 In this project, we integrate several external APIs and services to enrich the application’s data and functionalities:
