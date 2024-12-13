@@ -6,7 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -17,12 +19,14 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.smartreciperecommenderapp.R
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.IngredientViewModel
 import com.example.smartreciperecommenderapp.ui.IngredientScreen.camera.QRScannerViewModel
 import com.example.smartreciperecommenderapp.ui.navigation.Screen
@@ -38,7 +42,6 @@ fun ProductDetailScreen(
     val ingredient by qRScannerViewModel.ingredient.collectAsState()
     val searchedFoods by qRScannerViewModel.searchedFoods.collectAsState()
 
-    // If no ingredient details are available, show a message.
     if (ingredient == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -51,7 +54,7 @@ fun ProductDetailScreen(
 
     val currentIngredient = ingredient!!
 
-    // UI state variables for editable fields
+    // 状态变量
     var nameText by remember { mutableStateOf(currentIngredient.name) }
     val units = listOf("g", "kg", "ml", "L", "pieces")
     var quantityText by remember { mutableStateOf(currentIngredient.quantity.toString()) }
@@ -71,10 +74,8 @@ fun ProductDetailScreen(
     }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    // Error state if the quantity is not a valid number
     var quantityError by remember { mutableStateOf(false) }
 
-    // Show a date picker dialog if required
     if (showDatePicker) {
         DatePickerDialog(
             onDateSelected = { selectedDate ->
@@ -86,317 +87,319 @@ fun ProductDetailScreen(
         )
     }
 
+    val imageUrl = currentIngredient.imageUrl
+    val painter = rememberAsyncImagePainter(
+        model = imageUrl,
+        placeholder = painterResource(R.drawable.placeholder),
+        error = painterResource(R.drawable.placeholder),
+        onSuccess = {
+            Log.d("ProductDetailScreen", "Image loaded successfully.")
+        },
+        onError = { state ->
+            Log.e("ProductDetailScreen", "Error loading image: ${state.result.throwable}")
+        }
+    )
+
+    val context = LocalContext.current
+
+    // 可滚动布局
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 48.dp, start = 16.dp, end = 16.dp)
     ) {
-        ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            elevation = CardDefaults.elevatedCardElevation(8.dp),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            // Using a LazyColumn to allow scrolling for content
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+        Column(modifier = Modifier.fillMaxSize()) {
+            // 标题行（返回和标题）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Top row with a back button and title
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = {
-                            qRScannerViewModel.resetScan()
-                            qRScannerViewModel.clearSearchedFoods()
-                            nameText = ""
-                            navController.popBackStack()
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Ingredient Details",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                // Display the product image if available
-                item {
-                    val imageUrl = currentIngredient.imageUrl
-                    if (imageUrl != null) {
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            elevation = CardDefaults.elevatedCardElevation(4.dp)
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(imageUrl),
-                                contentDescription = "Product Image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                }
-
-                // Name field and search button
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = nameText,
-                            onValueChange = { nameText = it },
-                            label = { Text("Name") },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 8.dp),
-                            singleLine = true
-                        )
-
-                        Button(
-                            onClick = {
-                                // Perform search only if the name is sufficiently long
-                                if (nameText.isNotBlank() && nameText.length > 2) {
-                                    qRScannerViewModel.fetchNutrientsByName(nameText)
-                                } else {
-                                    qRScannerViewModel.clearSearchedFoods()
-                                }
-                            },
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
-                        ) {
-                            Text("Search")
-                        }
-                    }
-                }
-
-                // Display search results if any
-                if (searchedFoods.isNotEmpty()) {
-                    item {
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 200.dp)
-                        ) {
-                            LazyColumn {
-                                items(searchedFoods) { foodItem ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                qRScannerViewModel.updateSelectedFood(foodItem)
-                                                nameText = foodItem.food_name
-                                                qRScannerViewModel.clearSearchedFoods()
-                                            }
-                                            .padding(8.dp)
-                                    ) {
-                                        Text(foodItem.food_name)
-                                    }
-                                    HorizontalDivider()
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Quantity field with validation for numeric input
-                item {
-                    OutlinedTextField(
-                        value = quantityText,
-                        onValueChange = { input ->
-                            val regex = Regex("^\\d*\\.?\\d*\$")
-                            if (regex.matches(input)) {
-                                quantityText = input
-                                quantityError = false
-                            } else {
-                                quantityError = true
-                            }
-                        },
-                        label = { Text("Quantity") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal
-                        ),
-                        isError = quantityError,
-                        supportingText = {
-                            if (quantityError) {
-                                Text(
-                                    text = "Please enter a valid number",
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
+                IconButton(onClick = {
+                    qRScannerViewModel.resetScan()
+                    qRScannerViewModel.clearSearchedFoods()
+                    nameText = ""
+                    navController.popBackStack()
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
                     )
                 }
 
-                // Unit selection field with a dropdown menu
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                unitDropdownExpanded = true
-                            }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedUnit,
-                            onValueChange = { },
-                            label = { Text("Unit") },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            singleLine = true,
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    unitDropdownExpanded = !unitDropdownExpanded
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowDropDown,
-                                        contentDescription = "Select Unit"
-                                    )
-                                }
-                            }
-                        )
-                        DropdownMenu(
-                            expanded = unitDropdownExpanded,
-                            onDismissRequest = { unitDropdownExpanded = false }
-                        ) {
-                            units.forEach { unit ->
-                                DropdownMenuItem(
-                                    text = { Text(unit) },
-                                    onClick = {
-                                        selectedUnit = unit
-                                        unitDropdownExpanded = false
-                                    }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Ingredient Details",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            // 使用ElevatedCard包裹LazyColumn，并使用weight(1f)确保LazyColumn在剩余空间内滚动
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                elevation = CardDefaults.elevatedCardElevation(8.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        if (imageUrl != null) {
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 200.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp)
+                            ) {
+                                Image(
+                                    painter = painter,
+                                    contentDescription = "Product Image",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(16f/9f),
+                                    contentScale = ContentScale.Crop
                                 )
                             }
                         }
                     }
-                }
 
-                // Expiry date field with a date picker
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                showDatePicker = true
-                            }
-                    ) {
-                        Log.d("ProductDetailScreen", "id: ${ingredient?.id}")
-                        OutlinedTextField(
-                            value = expiryDateText,
-                            onValueChange = { expiryDateText = it },
-                            label = { Text("Expiry Date") },
+                    item {
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = nameText,
+                                onValueChange = { nameText = it },
+                                label = { Text("Name") },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp),
+                                singleLine = true
+                            )
+
+                            Button(
+                                onClick = {
+                                    if (nameText.isNotBlank() && nameText.length > 2) {
+                                        qRScannerViewModel.fetchNutrientsByName(nameText)
+                                    } else {
+                                        qRScannerViewModel.clearSearchedFoods()
+                                    }
+                                },
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                            ) {
+                                Text("Search")
+                            }
+                        }
+                    }
+
+                    if (searchedFoods.isNotEmpty()) {
+                        item {
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                            ) {
+                                Column {
+                                    searchedFoods.forEach { foodItem ->
+                                        Column {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        qRScannerViewModel.updateSelectedFood(foodItem)
+                                                        nameText = foodItem.food_name
+                                                        qRScannerViewModel.clearSearchedFoods()
+                                                    }
+                                                    .padding(8.dp)
+                                            ) {
+                                                Text(foodItem.food_name)
+                                            }
+                                            HorizontalDivider()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        OutlinedTextField(
+                            value = quantityText,
+                            onValueChange = { input ->
+                                val regex = Regex("^\\d*\\.?\\d*\$")
+                                if (regex.matches(input)) {
+                                    quantityText = input
+                                    quantityError = false
+                                } else {
+                                    quantityError = true
+                                }
+                            },
+                            label = { Text("Quantity") },
+                            modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    showDatePicker = true
-                                }) {
-                                    Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select Date")
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Decimal
+                            ),
+                            isError = quantityError,
+                            supportingText = {
+                                if (quantityError) {
+                                    Text(
+                                        text = "Please enter a valid number",
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
                                 }
                             }
                         )
                     }
-                }
 
-                // Display calories & fat card only if both values are available
-                if (currentIngredient.calories != null && currentIngredient.fat != null) {
                     item {
-                        ElevatedCard(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            elevation = CardDefaults.elevatedCardElevation(4.dp)
+                                .clickable {
+                                    unitDropdownExpanded = true
+                                }
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
+                            OutlinedTextField(
+                                value = selectedUnit,
+                                onValueChange = { },
+                                label = { Text("Unit") },
+                                modifier = Modifier.fillMaxWidth(),
+                                readOnly = true,
+                                singleLine = true,
+                                trailingIcon = {
+                                    IconButton(onClick = {
+                                        unitDropdownExpanded = !unitDropdownExpanded
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowDropDown,
+                                            contentDescription = "Select Unit"
+                                        )
+                                    }
+                                }
+                            )
+                            DropdownMenu(
+                                expanded = unitDropdownExpanded,
+                                onDismissRequest = { unitDropdownExpanded = false }
                             ) {
-                                // Calories info
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.LocalFireDepartment,
-                                        contentDescription = "Calories",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Calories",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = (currentIngredient.calories.toString()) + " kcal",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                units.forEach { unit ->
+                                    DropdownMenuItem(
+                                        text = { Text(unit) },
+                                        onClick = {
+                                            selectedUnit = unit
+                                            unitDropdownExpanded = false
+                                        }
                                     )
                                 }
+                            }
+                        }
+                    }
 
-                                // Fat info
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    showDatePicker = true
+                                }
+                        ) {
+                            Log.d("ProductDetailScreen", "id: ${ingredient?.id}")
+                            OutlinedTextField(
+                                value = expiryDateText,
+                                onValueChange = { expiryDateText = it },
+                                label = { Text("Expiry Date") },
+                                modifier = Modifier.fillMaxWidth(),
+                                readOnly = true,
+                                singleLine = true,
+                                trailingIcon = {
+                                    IconButton(onClick = {
+                                        showDatePicker = true
+                                    }) {
+                                        Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select Date")
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    if (currentIngredient.calories != null && currentIngredient.fat != null) {
+                        item {
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Spa,
-                                        contentDescription = "Fat",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Fat",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = (currentIngredient.fat.toString()) + " g",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            imageVector = Icons.Default.LocalFireDepartment,
+                                            contentDescription = "Calories",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Calories",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = (currentIngredient.calories.toString()) + " kcal",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            imageVector = Icons.Default.Spa,
+                                            contentDescription = "Fat",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Fat",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = (currentIngredient.fat.toString()) + " g",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(120.dp))
         }
 
-        // Determine if the 'Save' button should be enabled
         val canSave = !quantityError &&
                 quantityText.isNotBlank() &&
                 ingredient!!.calories != null && !ingredient!!.calories!!.isNaN() &&
                 ingredient!!.fat != null && !ingredient!!.fat!!.isNaN()
 
-        val context = LocalContext.current
-
-        // Save FloatingActionButton
         FloatingActionButton(
             onClick = {
                 if (canSave) {
@@ -408,7 +411,6 @@ fun ProductDetailScreen(
                         null
                     }
 
-                    // Create an updated ingredient object with the new values
                     val updatedIngredient = currentIngredient.copy(
                         name = nameText,
                         quantity = quantity,
@@ -416,7 +418,6 @@ fun ProductDetailScreen(
                         expiryDate = expiryDate
                     )
 
-                    // Save the updated ingredient
                     ingredientViewModel.saveIngredient(
                         updatedIngredient,
                         onSuccess = {
@@ -450,6 +451,7 @@ fun ProductDetailScreen(
         }
     }
 }
+
 
 /**
  * A dialog for selecting a date using a DatePicker.

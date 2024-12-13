@@ -45,7 +45,7 @@ In this project, we integrate several external APIs and services to enrich the a
 
    **Benefits:**
    - Provides a reliable, cloud-based storage solution for user data. This ensures that user preferences, ingredients, and other details are easily accessible and synchronized across devices.
-      
+
    Including:
    - Recipes
    - ingredients
@@ -174,34 +174,26 @@ lightSensor?.let {
 - Deleting ingredients by instanceId
 - Updating ingredient quantities
 
-```kotlin
-@Dao
-interface IngredientDao {
-    @Query("SELECT * FROM ingredient")
-    suspend fun getAllIngredients(): List<IngredientEntity>
+**RecipeModel** (used as a data/model layer representation)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertIngredient(ingredient: IngredientEntity)
+**Fields:**
+| Field           | Type            | Description                                                                 |
+|-----------------|-----------------|-----------------------------------------------------------------------------|
+| id              | Long            | Unique identifier for the recipe                                            |
+| name            | String          | Recipe name                                                                 |
+| description     | String          | A brief description of the recipe                                           |
+| imageUrl        | String?         | Optional URL to an image of the recipe                                      |
+| calories        | String          | Calorie content of the recipe, represented as a string                      |
+| carbohydrate    | String          | Carbohydrate content of the recipe, represented as a string                 |
+| fat             | String          | Fat content of the recipe, represented as a string                          |
+| protein         | String          | Protein content of the recipe, represented as a string                      |
+| ingredients     | List<String>    | A list of ingredients used in the recipe                                    |
+| types           | List<String>?   | Optional list of recipe categories or types                                 |
+| originIngredient| String?         | An optional field indicating the primary or original ingredient of the dish |
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertIngredients(ingredients: List<IngredientEntity>)
-
-    @Update
-    suspend fun updateIngredient(ingredient: IngredientEntity)
-
-    @Query("DELETE FROM ingredient WHERE instanceId = :instanceId")
-    suspend fun deleteIngredientByInstanceId(instanceId: Int)
-
-    @Query("DELETE FROM ingredient")
-    suspend fun deleteAll()
-
-    @Query("SELECT MAX(instanceId) FROM ingredient")
-    suspend fun getMaxInstanceId(): Int?
-
-    @Query("UPDATE ingredient SET quantity = :quantity WHERE instanceId = :instanceId")
-    suspend fun updateIngredientQuantity(instanceId: Int, quantity: Double)
-}
-```
+**RecipeDetailDao** provides operations to manage detailed recipe information within the local database:
+- Inserts or replaces a `RecipeDetailEntity` in the local database. This ensures that the detailed recipe information is stored and updated as needed.
+- Retrieves the detailed recipe entity corresponding to the given `recipeId`. Returns `null` if no matching record is found.
 
 **Relationship Diagram**
 
@@ -215,23 +207,29 @@ interface IngredientDao {
 
 Below are some example UI screens and functionalities captured from the current directory:
 
-- **Account Screen (with Sign-in)**
-  ![Account Screen with Sign-in](picture/acountScreen_with_siginin.png)
-
 - **Home Screen (without Sign-in)**
   ![Home Screen without Sign-in](picture/homeScreen_without_sginIn.png)
 
-- **Ingredient Detail**
-  ![Ingredient Detail](picture/ingredient_detail.png)
+- **Ingredient Screen (without Sign-in)**
+  ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
 
-- **Account Screen (without Sign-in)**
+  - **Account Screen (without Sign-in)**
   ![Account Screen without Sign-in](picture/acountScreen_without_siginin.png)
+
+- **Home Screen (with Sign-in)**
+  ![Home Screen with Sign-in](picture/homeScreen_with_siginIn.png)
 
 - **Ingredient Screen (with Sign-in)**
   ![Ingredient Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
 
+- **Account Screen (with Sign-in)**
+  ![Account Screen with Sign-in](picture/acountScreen_with_siginin.png)
+
+- **Recipe Detail Screen (with Sign-in)**
+  ![Recipe Detail Screen with Sign-in](picture/recipeDetail.gif)
+
+- **Ingredient Detail**
+  ![Ingredient Detail](picture/ingredient_detail.png)
+
 - **Barcode Scanning Function**
   ![Barcode Scanning Function](picture/barcode_scanning_function.JPG)
-
-- **Ingredient Screen (without Sign-in)**
-  ![Ingredient Screen without Sign-in](picture/ingredientScreen_without_siginIn.png)
