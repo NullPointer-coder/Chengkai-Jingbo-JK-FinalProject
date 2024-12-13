@@ -1,13 +1,27 @@
 package com.example.smartreciperecommenderapp.ui.IngredientScreen
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -18,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,7 +57,9 @@ fun IngredientScreen(
     qrScannerViewModel: QRScannerViewModel,
     ingredientViewModel: IngredientViewModel
 ) {
-    // If the user is not logged in, prompt them to do so
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     if (!isLoggedIn) {
         LoginPrompt(
             message = "You are not logged in yet, please log in first to view and manage your ingredients.",
@@ -50,20 +67,16 @@ fun IngredientScreen(
         )
     } else {
         var ingredientName by remember { mutableStateOf("") }
-
-        // Observing the searched foods state from the view model
         val searchedFoods by qrScannerViewModel.searchedFoods.collectAsState()
         var selectedFood by remember { mutableStateOf<FatSecretFood?>(null) }
 
         val coroutineScope = rememberCoroutineScope()
         var searchJob by remember { mutableStateOf<Job?>(null) }
 
-        // Load the ingredients list once when the screen appears
         LaunchedEffect(key1 = true) {
             ingredientViewModel.loadIngredients()
         }
 
-        // Debounce search: when ingredientName changes, wait 1 second before triggering search
         LaunchedEffect(ingredientName) {
             searchJob?.cancel()
             if (ingredientName.isNotBlank()) {
@@ -72,7 +85,6 @@ fun IngredientScreen(
                     qrScannerViewModel.fetchNutrientsByName(ingredientName)
                 }
             } else {
-                // Clear search results if input is empty
                 qrScannerViewModel.clearSearchedFoods()
                 selectedFood = null
             }
@@ -80,16 +92,10 @@ fun IngredientScreen(
 
         var showEditDialog by remember { mutableStateOf(false) }
         var editingIngredient by remember { mutableStateOf<Ingredient?>(null) }
-
-        // Observe the current list of ingredients
         val localIngredients by ingredientViewModel.ingredients.collectAsState()
-
         val scope = rememberCoroutineScope()
-
-        // isLoading controls the display of a loading overlay
         var isLoading by remember { mutableStateOf(false) }
 
-        // Show the edit dialog if needed
         if (showEditDialog && editingIngredient != null) {
             EditIngredientDialog(
                 ingredient = editingIngredient!!,
@@ -101,17 +107,16 @@ fun IngredientScreen(
             )
         }
 
-        // Separate ingredients into expired and non-expired lists
         val expiredIngredients = localIngredients
             .filter { it.expiryDate?.let { date -> calculateRemainingDays(date) < 0 } == true }
             .sortedBy { it.expiryDate }
+
         val nonExpiredIngredients = localIngredients
             .filter { it.expiryDate?.let { date -> calculateRemainingDays(date) >= 0 } != false }
             .sortedBy { it.expiryDate }
 
         var expiredExpanded by remember { mutableStateOf(false) }
 
-        // Show a full-screen loading overlay if isLoading is true
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -131,127 +136,166 @@ fun IngredientScreen(
                 )
             }
         ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(16.dp)
-                    .fillMaxSize()
-            ) {
-                // Search field and scan barcode button
+            if (isLandscape) {
+                // 横屏布局：1:2 比例
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .padding(16.dp)
                 ) {
-                    TextField(
-                        value = ingredientName,
-                        onValueChange = {
-                            ingredientName = it
-                            selectedFood = null
-                        },
-                        label = { Text("Search Ingredient") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(
-                        onClick = {
-                            // On click, show loading and navigate after a delay
-                            isLoading = true
-                            scope.launch {
-                                delay(500) // Simulate a brief loading process
-                                isLoading = false
-                                navController.navigate(Screen.BarcodeScanner.route)
-                            }
-                        },
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_barcode_scanner),
-                            contentDescription = "Scan Barcode"
-                        )
-                    }
-                }
-
-                // Display search results if available
-                if (searchedFoods.isNotEmpty()) {
-                    LazyColumn(
+                    // 左侧区域 (1份空间): 搜索与扫码，以及搜索结果
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 200.dp)
-                            .padding(top = 16.dp)
+                            .weight(1f)
+                            .fillMaxHeight()
                     ) {
-                        items(searchedFoods.size) { index ->
-                            val food = searchedFoods[index]
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        qrScannerViewModel.resetScan()
-                                        selectedFood = food
-                                        qrScannerViewModel.updateSelectedFood(food)
-                                        qrScannerViewModel.clearSearchedFoods()
-                                        navController.navigate(Screen.ProductDetail.route)
+                        // 搜索框与扫码按钮
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextField(
+                                value = ingredientName,
+                                onValueChange = {
+                                    ingredientName = it
+                                    selectedFood = null
+                                },
+                                label = { Text("Search Ingredient") },
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = {
+                                    isLoading = true
+                                    scope.launch {
+                                        delay(500)
+                                        isLoading = false
+                                        navController.navigate(Screen.BarcodeScanner.route)
                                     }
-                                    .padding(8.dp)
+                                },
+                                modifier = Modifier.padding(start = 8.dp)
                             ) {
-                                Text(text = food.food_name)
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_barcode_scanner),
+                                    contentDescription = "Scan Barcode"
+                                )
                             }
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Show the user's ingredients if there are any
-                if (localIngredients.isNotEmpty()) {
-                    Text(
-                        text = "Your Ingredients",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    val expiredCount = expiredIngredients.size
-                    if (expiredCount > 0) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { expiredExpanded = !expiredExpanded }
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Expired ($expiredCount)",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Icon(
-                                imageVector = if (expiredExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = if (expiredExpanded) "Collapse" else "Expand"
-                            )
-                        }
-
-                        // Expand/collapse section for expired ingredients
-                        AnimatedVisibility(visible = expiredExpanded) {
+                        // 显示搜索结果
+                        if (searchedFoods.isNotEmpty()) {
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(1f, fill = false),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    .heightIn(max = 200.dp)
+                                    .padding(top = 16.dp)
                             ) {
-                                items(
-                                    items = expiredIngredients,
-                                    key = { ingredient -> ingredient.instanceId }
-                                ) { ingredient ->
-                                    IngredientItemCard(
-                                        ingredient = ingredient,
-                                        onDeleteClick = {
-                                            ingredientViewModel.deleteIngredient(
-                                                ingredient
-                                            )
-                                        },
-                                        onEditClick = { ing ->
-                                            editingIngredient = ing
-                                            showEditDialog = true
+                                items(searchedFoods.size) { index ->
+                                    val food = searchedFoods[index]
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                qrScannerViewModel.resetScan()
+                                                selectedFood = food
+                                                qrScannerViewModel.updateSelectedFood(food)
+                                                qrScannerViewModel.clearSearchedFoods()
+                                                navController.navigate(Screen.ProductDetail.route)
+                                            }
+                                            .padding(8.dp)
+                                    ) {
+                                        Text(text = food.food_name)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // 右侧区域 (2份空间): Your Ingredients 列表
+                    Column(
+                        modifier = Modifier
+                            .weight(3f)
+                            .fillMaxHeight()
+                    ) {
+                        // 显示用户配料列表
+                        IngredientLists(
+                            expiredIngredients = expiredIngredients,
+                            nonExpiredIngredients = nonExpiredIngredients,
+                            expiredExpanded = expiredExpanded,
+                            onExpiredSectionClick = { expiredExpanded = !expiredExpanded },
+                            onEditClick = { ing ->
+                                editingIngredient = ing
+                                showEditDialog = true
+                            },
+                            onDeleteClick = { ingredientViewModel.deleteIngredient(it) }
+                        )
+                    }
+                }
+            } else {
+                // 竖屏布局（保持原有）
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp)
+                        .fillMaxSize()
+                ) {
+                    // 搜索框与扫码按钮
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextField(
+                            value = ingredientName,
+                            onValueChange = {
+                                ingredientName = it
+                                selectedFood = null
+                            },
+                            label = { Text("Search Ingredient") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = {
+                                isLoading = true
+                                scope.launch {
+                                    delay(500)
+                                    isLoading = false
+                                    navController.navigate(Screen.BarcodeScanner.route)
+                                }
+                            },
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_barcode_scanner),
+                                contentDescription = "Scan Barcode"
+                            )
+                        }
+                    }
+
+                    // 显示搜索结果
+                    if (searchedFoods.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .padding(top = 16.dp)
+                        ) {
+                            items(searchedFoods.size) { index ->
+                                val food = searchedFoods[index]
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            qrScannerViewModel.resetScan()
+                                            selectedFood = food
+                                            qrScannerViewModel.updateSelectedFood(food)
+                                            qrScannerViewModel.clearSearchedFoods()
+                                            navController.navigate(Screen.ProductDetail.route)
                                         }
-                                    )
+                                        .padding(8.dp)
+                                ) {
+                                    Text(text = food.food_name)
                                 }
                             }
                         }
@@ -259,52 +303,127 @@ fun IngredientScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    val nonExpiredCount = nonExpiredIngredients.size
-                    if (nonExpiredCount > 0) {
-                        Text(
-                            text = "Non-Expired ($nonExpiredCount)",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        // List of non-expired ingredients
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f, fill = false)
-                                .padding(bottom = 65.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(
-                                items = nonExpiredIngredients,
-                                key = { ingredient -> ingredient.instanceId }
-                            ) { ingredient ->
-                                IngredientItemCard(
-                                    ingredient = ingredient,
-                                    onDeleteClick = { ingredientViewModel.deleteIngredient(ingredient) },
-                                    onEditClick = { ing ->
-                                        editingIngredient = ing
-                                        showEditDialog = true
-                                    }
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    // If no ingredients are available
-                    Box(
+                    // 显示用户配料列表
+                    IngredientLists(
+                        expiredIngredients = expiredIngredients,
+                        nonExpiredIngredients = nonExpiredIngredients,
+                        expiredExpanded = expiredExpanded,
+                        onExpiredSectionClick = { expiredExpanded = !expiredExpanded },
+                        onEditClick = { ing ->
+                            editingIngredient = ing
+                            showEditDialog = true
+                        },
+                        onDeleteClick = { ingredientViewModel.deleteIngredient(it) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun IngredientLists(
+    expiredIngredients: List<Ingredient>,
+    nonExpiredIngredients: List<Ingredient>,
+    expiredExpanded: Boolean,
+    onExpiredSectionClick: () -> Unit,
+    onEditClick: (Ingredient) -> Unit,
+    onDeleteClick: (Ingredient) -> Unit
+) {
+    if (expiredIngredients.isNotEmpty() || nonExpiredIngredients.isNotEmpty()) {
+        Text(
+            text = "Your Ingredients",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val expiredCount = expiredIngredients.size
+        if (expiredCount > 0) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onExpiredSectionClick() }
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Expired ($expiredCount)",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                Icon(
+                    imageVector = if (expiredExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = if (expiredExpanded) "Collapse" else "Expand"
+                )
+            }
+
+            AnimatedVisibility(visible = expiredExpanded) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center,
+                            .weight(1f, fill = false),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = "You have no saved ingredients.",
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodySmall
+                        items(
+                            items = expiredIngredients,
+                            key = { ingredient -> ingredient.instanceId }
+                        ) { ingredient ->
+                            IngredientItemCard(
+                                ingredient = ingredient,
+                                onDeleteClick = { onDeleteClick(ingredient) },
+                                onEditClick = { onEditClick(ingredient) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val nonExpiredCount = nonExpiredIngredients.size
+        if (nonExpiredCount > 0) {
+            Text(
+                text = "Non-Expired ($nonExpiredCount)",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Column(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .padding(bottom = 65.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = nonExpiredIngredients,
+                        key = { ingredient -> ingredient.instanceId }
+                    ) { ingredient ->
+                        IngredientItemCard(
+                            ingredient = ingredient,
+                            onDeleteClick = { onDeleteClick(ingredient) },
+                            onEditClick = { onEditClick(ingredient) }
                         )
                     }
                 }
             }
+        }
+    } else {
+        // 无配料时的提示
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "You have no saved ingredients.",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

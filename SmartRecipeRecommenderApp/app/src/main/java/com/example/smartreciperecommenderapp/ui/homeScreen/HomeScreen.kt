@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -97,7 +98,7 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 AnimatedVisibility(
-                    visible = (selectedRecipeDetails == null),
+                    visible = (selectedRecipeDetails == null && !isLoading && recipes.isNotEmpty()),
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
@@ -189,10 +190,13 @@ fun HomeScreen(
                                     onRecipeClick = { recipe -> loadDetails(recipe.id) },
                                     modifier = Modifier.weight(1f)
                                 )
+
                                 RecipeDetailsPane(
                                     homeViewModel = homeViewModel,
                                     recipeDetails = selectedRecipeDetails,
-                                    modifier = Modifier.weight(1f)
+                                    onBackClick = null,
+                                    isLandscape = true,
+                                    modifier = Modifier.weight(2f)
                                 )
                             }
                         } else {
@@ -208,6 +212,7 @@ fun HomeScreen(
                                         homeViewModel = homeViewModel,
                                         recipeDetails = selectedRecipeDetails,
                                         onBackClick = { loadDetails(0) },
+                                        isLandscape = false,
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 }
