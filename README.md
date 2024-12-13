@@ -222,7 +222,7 @@ Below are some example UI screens and functionalities captured from the current 
 - **Ingredient Screen (with Sign-in)**
   ![Ingredient Screen with Sign-in](picture/ingredientScreen_with_siginIn.png)
 
-  - **Account Screen (with Sign-in)**
+- **Account Screen (with Sign-in)**
   ![Account Screen with Sign-in](picture/acountScreen_with_siginin.png)
 
 - **Recipe Detail Screen (with Sign-in)**
