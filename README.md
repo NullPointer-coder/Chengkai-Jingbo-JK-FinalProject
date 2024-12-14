@@ -18,22 +18,22 @@ A Personalized Recipe Solution to Reduce Food Waste and Simplify Meal Planning
 This application provides a range of UI examples and feature demonstrations, including the ability to browse recipes and ingredients, and experience different layouts depending on whether the user is signed in. By leveraging modern Android technologies and libraries, it offers a seamless, responsive, and engaging user experience.
 
 **Key Features**:
-- **Android Compatibility:**  
+- **Android Compatibility:**
   Optimized for Android devices with support starting from `minSdk 24` and targeting `targetSdk 34`, ensuring compatibility across a wide spectrum of phones and tablets.
-  
-- **Modern UI with Jetpack Compose:**  
+
+- **Modern UI with Jetpack Compose:**
   Utilizes Jetpack Compose for building UI elements, offering responsive design that adapts to both portrait and landscape orientations.
-  
-- **Dynamic Layouts for Multiple Form Factors:**  
+
+- **Dynamic Layouts for Multiple Form Factors:**
   Responsive layouts that scale elegantly between smartphones and tablets, providing an optimized interface for every screen size.
-  
-- **Advanced Scanning and Recognition:**  
+
+- **Advanced Scanning and Recognition:**
   Integrates with ML Kit’s barcode scanning for easy ingredient identification, enhancing user convenience and interaction.
-  
-- **Robust Data Handling:**  
+
+- **Robust Data Handling:**
   Employs Room for efficient local data storage, and leverages Retrofit and OkHttp for network communication. This ensures smooth, reliable data retrieval and management.
-  
-- **Firebase Integration:**  
+
+- **Firebase Integration:**
   Incorporates Firebase services for authentication, analytics, cloud data management, and crash reporting, enabling a secure, scalable, and data-driven application.
 
 ## APIs Used
@@ -226,33 +226,88 @@ lightSensor?.let {
 - **Users → 1-to-many → Offline Cache**
 - **Users → 1-to-many → Analytics**
 
+## Additional Features
+- Firebase Cloud Massaging Notification: Use Firebase Cloud Messaging to implement push notifications to inform users about important updates or events.
+``` kotlin
+class FirebaseMessagingService : FirebaseMessagingService() {
+
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        super.onMessageReceived(remoteMessage)
+        // Processing messages from the server
+        remoteMessage.notification?.let {
+            val title = it.title
+            val body = it.body
+            showNotification(title, body)
+        }
+        remoteMessage.data.isNotEmpty().let {
+            Log.d("FCM", "Message data payload: ${remoteMessage.data}")
+        }
+    }
+
+    private fun showNotification(title: String?, message: String?) {
+        // Create notification channels (for Android 8.0+)
+        val channelId = "default_channel_id"
+        val channelName = "Default Channel"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+        Log.d("FCM", "Notification received: $title, $message")
+    }
+
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+        // Send the updated token to the server
+        Log.d("FCM", "Refreshed token: $token")
+    }
+}
+```
+
 ## App Screens
 
 Below are some example UI screens and functionalities captured from the current directory:
 
-### Home Screen (Without Sign-in)  
+### Home Screen (Without Sign-in)
 ![Home Screen (Without Sign-in)](picture/homeScreen_without_signIn.png)
 
-### Ingredient Screen (Without Sign-in)  
+### Ingredient Screen (Without Sign-in)
 ![Ingredient Screen (Without Sign-in)](picture/ingredientScreen_without_signIn.png)
 
-### Account Screen (Without Sign-in)  
+### Account Screen (Without Sign-in)
 ![Account Screen (Without Sign-in)](picture/accountScreen_without_signIn.png)
 
-### Home Screen (With Sign-in)  
+### Home Screen (With Sign-in)
 ![Home Screen (With Sign-in)](picture/homeScreen_with_signIn.png)
 
-### Ingredient Screen (With Sign-in)  
+### Ingredient Screen (With Sign-in)
 ![Ingredient Screen (With Sign-in)](picture/ingredientScreen_with_signIn.png)
 
-### Account Screen (With Sign-in)  
+### Account Screen (With Sign-in)
 ![Account Screen (With Sign-in)](picture/accountScreen_with_signIn.png)
 
-### Recipe Detail Screen (With Sign-in)  
+### Recipe Detail Screen (With Sign-in)
 ![Recipe Detail Screen (With Sign-in)](picture/recipeDetail.gif)
 
-### Ingredient Detail  
+### Ingredient Detail
 ![Ingredient Detail](picture/ingredient_detail.png)
 
-### Barcode Scanning Function  
+### Barcode Scanning Function
 ![Barcode Scanning Function](picture/barcode_scanning_function.JPG)
+
+### Firebase Cloud Massaging Notification
+![Firebase Cloud Massaging Notification](picture/firebase_cloud_massaging_notification.png)
