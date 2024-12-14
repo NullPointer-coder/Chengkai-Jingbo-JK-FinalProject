@@ -22,16 +22,18 @@ import com.example.smartreciperecommenderapp.data.repository.RecipeRepository
 import com.example.smartreciperecommenderapp.data.repository.UserRepository
 import com.example.smartreciperecommenderapp.ui.BottomNavigationBar
 import android.Manifest
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.smartreciperecommenderapp.data.workers.DataSyncWorker
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
-import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
-import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
 import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 import com.example.smartreciperecommenderapp.ui.theme.SmartRecipeRecommenderAppTheme
 import com.example.smartreciperecommenderapp.utils.NetworkMonitor
-import com.google.android.gms.auth.api.signin.GoogleSignIn.requestPermissions
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +64,7 @@ class MainActivity : ComponentActivity() {
             }
 
         applicationContext.deleteDatabase("smart_recipe_db")
-        // Initialize the database and dependencies in onCreate// 在onCreate中初始化数据库和依赖
+        // Initialize the database and dependencies in onCreate
         val database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
@@ -88,6 +90,14 @@ class MainActivity : ComponentActivity() {
             this,
             ProfileViewModelFactory(userRepository)
         )[ProfileViewModel::class.java]
+
+        // Schedule background tasks
+        val workRequest = PeriodicWorkRequestBuilder<DataSyncWorker>(1, TimeUnit.HOURS).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "DataSyncWork",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
 
         enableEdgeToEdge()
 

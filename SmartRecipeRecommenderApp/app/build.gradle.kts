@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.lifecycle.viewmodel.compose)
 
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation("com.google.android.material:material:1.12.0")
@@ -101,6 +103,8 @@ dependencies {
     // Room
     implementation ("androidx.room:room-runtime:2.6.1")
     implementation(libs.billing.ktx)
+    implementation(libs.junit.junit)
+    //implementation(project(":app"))
     kapt ("androidx.room:room-compiler:2.6.1")
     implementation ("androidx.room:room-ktx:2.6.1")
 
@@ -111,7 +115,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-
     // Hit
     implementation ("com.google.dagger:hilt-android:2.53.1")
     kapt ("com.google.dagger:hilt-android-compiler:2.53.1")
@@ -121,7 +124,19 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
 
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation("com.google.truth:truth:1.4.4")
+
     testImplementation(libs.junit)
+
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.7.6")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.6")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -16,6 +16,7 @@ firebaseFirestoreKtx = "25.1.1"
 navigationRuntimeKtx = "2.8.5"
 navigationCompose = "2.8.5"
 billingKtx = "7.1.1"
+junitJunit = "4.13.2"
 
 [libraries]
 lifecycle-viewmodel-compose = "androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7"
@@ -41,6 +42,7 @@ firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-fires
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billingKtx" }
+junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
 
 [plugins]
 google-services = { id = "com.google.gms.google-services", version = "4.3.15" }
