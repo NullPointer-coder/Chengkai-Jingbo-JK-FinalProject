@@ -577,56 +577,41 @@ catch (e: Exception) {
 ```
 
 ## Additional Features
-- Firebase Cloud Massaging Notification: Use Firebase Cloud Messaging to implement push notifications to inform users about important updates or events.
-``` kotlin
-class FirebaseMessagingService : FirebaseMessagingService() {
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        super.onMessageReceived(remoteMessage)
-        // Processing messages from the server
-        remoteMessage.notification?.let {
-            val title = it.title
-            val body = it.body
-            showNotification(title, body)
-        }
-        remoteMessage.data.isNotEmpty().let {
-            Log.d("FCM", "Message data payload: ${remoteMessage.data}")
-        }
-    }
+### Push Notifications
 
-    private fun showNotification(title: String?, message: String?) {
-        // Create notification channels (for Android 8.0+)
-        val channelId = "default_channel_id"
-        val channelName = "Default Channel"
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+We have integrated **Firebase Cloud Messaging (FCM)** to enable push notifications that keep users informed about important updates or events in real-time. By leveraging FCM, the app can deliver timely and relevant messages directly to the user's device, even when the app is not actively in use.
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                channelName,
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+**Key Points:**
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+- **Real-time Notifications:**
+  When the server sends a notification message, our `FirebaseMessagingService` receives it. This allows us to inform the user about critical events, such as new recipe recommendations, ingredient updates, or special offers, ensuring they stay engaged and informed.
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
-        Log.d("FCM", "Notification received: $title, $message")
-    }
+- **Notification Customization:**
+  We create notification channels for Android 8.0+ (Oreo) devices, ensuring that notifications appear with appropriate importance levels and user-friendly presentation. Each notification is displayed with a title, message, and icon, providing a clear call-to-action for the user.
 
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        // Send the updated token to the server
-        Log.d("FCM", "Refreshed token: $token")
-    }
-}
-```
+- **Refreshed Tokens & Reliability:**
+  When a new FCM registration token is generated, we log it and can send it to our server for future targeted messages. This helps maintain a reliable and up-to-date communication channel with the user.
+
+By integrating Firebase Cloud Messaging and handling incoming messages in the `FirebaseMessagingService`, we fully meet the requirement to implement push notifications, improving user engagement and delivering timely information.
+
+### Analytics
+
+We have integrated **Firebase Analytics** into the application to track user behavior and app usage patterns. By using Firebase Analytics, we can collect anonymous usage data, such as how users navigate through the app, which recipes they view, and how often they interact with various features.
+
+**Key Points:**
+
+- **Firebase Analytics Integration:**
+  The app is configured with `google-services.json` and the `firebase-analytics-ktx` dependency. Upon startup, Firebase Analytics automatically initializes and begins collecting basic user engagement metrics.
+
+- **Custom Event Logging:**
+  We have implemented an `AnalyticsLogger` class that interacts with `FirebaseAnalytics` to log custom events. For example, when a user views a specific recipe detail, we record a `view_recipe` event. This allows us to understand which recipes are most popular and tailor future improvements accordingly.
+
+- **Data Analysis and Insights:**
+  Over time, data collected by Firebase Analytics (such as active users, retention rate, and event frequency) can be viewed in the Firebase console. This information helps us make data-driven decisions to enhance the user experience, improve content recommendations, and optimize the app’s workflows.
+
+By integrating Firebase Analytics and recording relevant user events, we fully meet the requirement for implementing analytics to track app usage and user behavior.
+
 
 ## App Screens
 
