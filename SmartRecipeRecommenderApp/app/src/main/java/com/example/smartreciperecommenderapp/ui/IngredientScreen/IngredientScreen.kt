@@ -137,20 +137,19 @@ fun IngredientScreen(
             }
         ) { innerPadding ->
             if (isLandscape) {
-                // 横屏布局：1:2 比例
                 Row(
                     modifier = Modifier
                         .padding(innerPadding)
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // 左侧区域 (1份空间): 搜索与扫码，以及搜索结果
+                    // left side: search bar
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
                     ) {
-                        // 搜索框与扫码按钮
+                        // search bar and barcode scanner button
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -182,7 +181,7 @@ fun IngredientScreen(
                             }
                         }
 
-                        // 显示搜索结果
+                        // show search results
                         if (searchedFoods.isNotEmpty()) {
                             LazyColumn(
                                 modifier = Modifier
@@ -213,13 +212,12 @@ fun IngredientScreen(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // 右侧区域 (2份空间): Your Ingredients 列表
                     Column(
                         modifier = Modifier
                             .weight(3f)
                             .fillMaxHeight()
                     ) {
-                        // 显示用户配料列表
+                        // right side: ingredient list
                         IngredientLists(
                             expiredIngredients = expiredIngredients,
                             nonExpiredIngredients = nonExpiredIngredients,
@@ -234,14 +232,12 @@ fun IngredientScreen(
                     }
                 }
             } else {
-                // 竖屏布局（保持原有）
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
                         .padding(16.dp)
                         .fillMaxSize()
                 ) {
-                    // 搜索框与扫码按钮
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -253,7 +249,8 @@ fun IngredientScreen(
                                 selectedFood = null
                             },
                             label = { Text("Search Ingredient") },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
                         )
                         IconButton(
                             onClick = {
@@ -272,8 +269,6 @@ fun IngredientScreen(
                             )
                         }
                     }
-
-                    // 显示搜索结果
                     if (searchedFoods.isNotEmpty()) {
                         LazyColumn(
                             modifier = Modifier

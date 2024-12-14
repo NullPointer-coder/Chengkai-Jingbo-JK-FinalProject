@@ -58,7 +58,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
 
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("androidx.compose.material:material-icons-extended:1.7.5")
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation("com.google.android.material:material:1.12.0")
 
 
@@ -71,17 +71,17 @@ dependencies {
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-messaging")
 
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation ("com.google.android.gms:play-services-base:18.5.0")
 
-    implementation ("androidx.navigation:navigation-fragment-ktx:2.8.4")
-    implementation ("androidx.navigation:navigation-ui-ktx:2.8.4")
+    implementation ("androidx.navigation:navigation-fragment-ktx:2.8.5")
+    implementation ("androidx.navigation:navigation-ui-ktx:2.8.5")
 
     // CameraX
-    implementation ("androidx.camera:camera-core:1.4.0")
-    implementation ("androidx.camera:camera-camera2:1.4.0")
-    implementation ("androidx.camera:camera-lifecycle:1.4.0")
-    implementation ("androidx.camera:camera-view:1.4.0")
+    implementation ("androidx.camera:camera-core:1.4.1")
+    implementation ("androidx.camera:camera-camera2:1.4.1")
+    implementation ("androidx.camera:camera-lifecycle:1.4.1")
+    implementation ("androidx.camera:camera-view:1.4.1")
 
     // Google ML Kit
     implementation ("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
@@ -89,7 +89,7 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
     // Compose
-    implementation ("com.google.accompanist:accompanist-permissions:0.36.0")
+    implementation ("com.google.accompanist:accompanist-permissions:0.37.0")
 
     // Open Food Facts API
     implementation ("com.squareup.retrofit2:retrofit:2.11.0")
@@ -113,8 +113,8 @@ dependencies {
 
 
     // Hit
-    implementation ("com.google.dagger:hilt-android:2.53")
-    kapt ("com.google.dagger:hilt-android-compiler:2.53")
+    implementation ("com.google.dagger:hilt-android:2.53.1")
+    kapt ("com.google.dagger:hilt-android-compiler:2.53.1")
 
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 

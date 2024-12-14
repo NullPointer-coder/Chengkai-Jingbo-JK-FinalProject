@@ -54,7 +54,6 @@ fun ProductDetailScreen(
 
     val currentIngredient = ingredient!!
 
-    // 状态变量
     var nameText by remember { mutableStateOf(currentIngredient.name) }
     val units = listOf("g", "kg", "ml", "L", "pieces")
     var quantityText by remember { mutableStateOf(currentIngredient.quantity.toString()) }
@@ -102,14 +101,12 @@ fun ProductDetailScreen(
 
     val context = LocalContext.current
 
-    // 可滚动布局
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 48.dp, start = 16.dp, end = 16.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // 标题行（返回和标题）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
@@ -135,7 +132,6 @@ fun ProductDetailScreen(
                 )
             }
 
-            // 使用ElevatedCard包裹LazyColumn，并使用weight(1f)确保LazyColumn在剩余空间内滚动
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -18,6 +18,7 @@ import com.example.smartreciperecommenderapp.ui.api.RecipeTypesWrapper
 import com.example.smartreciperecommenderapp.ui.api.ServingSizesWrapper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -124,6 +125,7 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
                     _favorites.value = emptyList()
                 }
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 println("Error loading favorites: ${e.message}")
                 _favorites.value = emptyList()
             }
@@ -153,15 +155,16 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
         user?.let {
             viewModelScope.launch {
                 try {
-                    it.reload().await() // 刷新用户信息
-                    _isEmailVerified.value = it.isEmailVerified // 更新验证状态
+                    it.reload().await()
+                    _isEmailVerified.value = it.isEmailVerified
                 } catch (e: Exception) {
-                    _isEmailVerified.value = false // 处理异常
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    _isEmailVerified.value = false
                     println("Error checking email verification: ${e.message}")
                 }
             }
         } ?: run {
-            _isEmailVerified.value = false // 如果用户为 null，则设置为未验证
+            _isEmailVerified.value = false
         }
     }
 
@@ -170,15 +173,15 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
     private suspend fun checkEmailVerificationStatus(user: FirebaseUser?) {
         try {
             if (user != null) {
-                user.reload().await() // 刷新用户信息
-                _isEmailVerified.value = user.isEmailVerified // 更新验证状态
+                user.reload().await() // Refresh user information
+                _isEmailVerified.value = user.isEmailVerified // Update validation status
             } else {
-                _isEmailVerified.value = false // 如果用户为 null，则默认未验证
+                _isEmailVerified.value = false // If the user is null, the default is unauthenticated
             }
         } catch (e: Exception) {
-            // 捕获异常并打印日志
+            FirebaseCrashlytics.getInstance().recordException(e)
             println("Error checking email verification status: ${e.message}")
-            _isEmailVerified.value = false // 如果发生异常，安全地设置为未验证
+            _isEmailVerified.value = false // Safely set to unverified if an exception occurs
         }
     }
 
@@ -209,6 +212,7 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
                     onFailure(result.errorMessage)
                 }
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 onFailure("An unexpected error occurred: ${e.message}")
             }
         }
@@ -251,6 +255,7 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
                     onFailure(result.errorMessage)
                 }
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 onFailure("An unexpected error occurred: ${e.message}")
             }
         }
@@ -269,6 +274,7 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
                 loadUserFavorites()
                 onDetailsFetched?.invoke()
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 userName.value = "Guest"
                 userAvatarUrl.value = null
             }
@@ -379,6 +385,7 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
 
             favoritesRef?.child(recipe.recipeId.toString())?.removeValue()?.addOnSuccessListener {
             }?.addOnFailureListener { e ->
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("ProfileViewModel", "Failed to remove recipe from Firebase: ", e)
             }
         }

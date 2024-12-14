@@ -9,6 +9,7 @@ import com.example.smartreciperecommenderapp.ui.api.FatSecretFood
 import com.example.smartreciperecommenderapp.ui.api.GoogleImageSearchService
 import com.example.smartreciperecommenderapp.ui.api.GoogleSearchConfig
 import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -107,14 +108,17 @@ class QRScannerViewModel : ViewModel() {
                 }
             } catch (@SuppressLint("NewApi") e: retrofit2.HttpException) {
                 Log.e("QRScannerViewModel", "HTTP Error: ${e.message()}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
                 _productDetails.value = "HTTP Error: ${e.message()}"
                 _productImage.value = null
             } catch (e: IOException) {
                 Log.e("QRScannerViewModel", "Network Error, please check your connection.", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
                 _productDetails.value = "Network Error: Please check your connection."
                 _productImage.value = null
             } catch (e: Exception) {
                 Log.e("QRScannerViewModel", "Unexpected Error: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
                 _productDetails.value = "Unexpected Error: ${e.message}"
                 _productImage.value = null
             }
@@ -143,6 +147,7 @@ class QRScannerViewModel : ViewModel() {
 
                 Log.d("QRScannerViewModel", "Fetched ${foodsList.size} foods for $name")
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("QRScannerViewModel", "Error fetching nutrients by name: ${e.message}", e)
                 // Handle errors as needed
                 _searchedFoods.value = emptyList()
@@ -207,6 +212,7 @@ class QRScannerViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("QRScannerViewModel", "Error fetching image from Google: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
                 current.copy(
                     id = newId,
                     calories = caloriesValue,

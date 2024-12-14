@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.smartreciperecommenderapp.data.model.Ingredient
 import com.example.smartreciperecommenderapp.data.repository.IngredientRepository
 import com.example.smartreciperecommenderapp.utils.NetworkMonitor
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -64,6 +65,7 @@ class IngredientViewModel(
                 loadIngredients()
                 onSuccess()
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 onError(e.message ?: "Unknown error occurred while saving ingredient.")
             }
         }
@@ -94,6 +96,7 @@ class IngredientViewModel(
                 ingredientRepository.deleteIngredient(ingredient)
                 loadIngredients()
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("IngredientViewModel", "Error deleting ingredient: ${ingredient.instanceId}", e)
                 onError(e.message ?: "Unknown error occurred while deleting the ingredient.")
             }
@@ -127,6 +130,7 @@ class IngredientViewModel(
                 ingredientRepository.updateIngredientQuantity(instanceId, quantity)
                 loadIngredients()
             } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("IngredientViewModel", "Error updating ingredient: ${e.message}", e)
                 onError(e.message ?: "Unknown error occurred while updating ingredient.")
             }

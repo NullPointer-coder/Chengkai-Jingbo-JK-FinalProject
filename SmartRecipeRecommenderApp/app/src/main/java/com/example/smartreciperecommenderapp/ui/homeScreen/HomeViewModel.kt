@@ -21,6 +21,7 @@ import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import com.example.smartreciperecommenderapp.ui.api.ServingSizesWrapper
 import com.example.smartreciperecommenderapp.utils.NetworkMonitor
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -175,6 +176,9 @@ class HomeViewModel(
                 }
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Error loading recipe details", e)
+
+                FirebaseCrashlytics.getInstance().recordException(e)
+
                 val errorMessage = when (e) {
                     is java.net.UnknownHostException -> "Network error: Unable to load recipes. Please check your internet connection."
                     is java.net.SocketTimeoutException -> "Network error: Request timed out. Please try again."
@@ -277,6 +281,8 @@ class HomeViewModel(
 
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Error loading recipes", e)
+                // Log the exception to Firebase Crashlytics
+                FirebaseCrashlytics.getInstance().recordException(e)
                 val errorMessage = when (e) {
                     is java.net.UnknownHostException -> "Network error: Unable to load recipes. Please check your internet connection."
                     is java.net.SocketTimeoutException -> "Network error: Request timed out. Please try again."
@@ -295,7 +301,7 @@ class HomeViewModel(
             try {
                 val ingredients = getUniqueNonExpiredIngredients()
                 val allSelectedModels = mutableListOf<RecipeModel>()
-
+                // Fetch recipes for each ingredient
                 for (ingredient in ingredients) {
                     val ingredientName = ingredient.name
                     if (ingredientName.isNotEmpty()) {
@@ -304,7 +310,6 @@ class HomeViewModel(
                         allSelectedModels.addAll(selected)
                     }
                 }
-
                 val updatedModels = allSelectedModels.map { model ->
                     if (model.imageUrl == null) {
                         val googleImage = googleImageSearchService.fetchFirstImageForFood(model.name)
@@ -318,9 +323,10 @@ class HomeViewModel(
                         model
                     }
                 }
-
                 _recipes.value = updatedModels
             } catch (e: Exception) {
+                // Log the exception to Firebase Crashlytics
+                FirebaseCrashlytics.getInstance().recordException(e)
                 val errorMessage = when (e) {
                     is java.net.UnknownHostException -> "Network error: Unable to load recipes. Please check your internet connection."
                     is java.net.SocketTimeoutException -> "Network error: Request timed out. Please try again."
@@ -351,6 +357,7 @@ class HomeViewModel(
             favoritesRef?.child(recipe.recipeId.toString())?.setValue(recipe)?.addOnSuccessListener {
                 Log.d("HomeViewModel", "Recipe saved to Firebase favorites.")
             }?.addOnFailureListener { e ->
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("HomeViewModel", "Failed to save recipe to Firebase: ", e)
             }
         }
@@ -397,6 +404,7 @@ class HomeViewModel(
             favoritesRef?.child(recipe.recipeId.toString())?.removeValue()?.addOnSuccessListener {
                 Log.d("HomeViewModel", "Recipe removed from Firebase favorites.")
             }?.addOnFailureListener { e ->
+                FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("HomeViewModel", "Failed to remove recipe from Firebase: ", e)
             }
         }
