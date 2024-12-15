@@ -224,76 +224,84 @@ fun ProductDetailScreen(
                             }
                         }
                     }
-
                     item {
-                        OutlinedTextField(
-                            value = quantityText,
-                            onValueChange = { input ->
-                                val regex = Regex("^\\d*\\.?\\d*\$")
-                                if (regex.matches(input)) {
-                                    quantityText = input
-                                    quantityError = false
-                                } else {
-                                    quantityError = true
-                                }
-                            },
-                            label = { Text("Quantity") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Decimal
-                            ),
-                            isError = quantityError,
-                            supportingText = {
-                                if (quantityError) {
-                                    Text(
-                                        text = "Please enter a valid number",
-                                        color = MaterialTheme.colorScheme.error,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-                        )
-                    }
-
-                    item {
-                        Box(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    unitDropdownExpanded = true
-                                }
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // quantity input
                             OutlinedTextField(
-                                value = selectedUnit,
-                                onValueChange = { },
-                                label = { Text("Unit") },
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true,
+                                value = quantityText,
+                                onValueChange = { input ->
+                                    val regex = Regex("^\\d*\\.?\\d*\$")
+                                    if (regex.matches(input)) {
+                                        quantityText = input
+                                        quantityError = false
+                                    } else {
+                                        quantityError = true
+                                    }
+                                },
+                                label = { Text("Quantity") },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 56.dp),
                                 singleLine = true,
-                                trailingIcon = {
-                                    IconButton(onClick = {
-                                        unitDropdownExpanded = !unitDropdownExpanded
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowDropDown,
-                                            contentDescription = "Select Unit"
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Decimal
+                                ),
+                                isError = quantityError,
+                                supportingText = {
+                                    if (quantityError) {
+                                        Text(
+                                            text = "Please enter a valid number",
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodySmall
                                         )
                                     }
                                 }
                             )
-                            DropdownMenu(
-                                expanded = unitDropdownExpanded,
-                                onDismissRequest = { unitDropdownExpanded = false }
+
+                            // Unit dropdown
+                            Box(
+                                modifier = Modifier
+                                    .width(115.dp)
+                                    .heightIn(min = 56.dp)
+                                    .clickable { unitDropdownExpanded = true }
                             ) {
-                                units.forEach { unit ->
-                                    DropdownMenuItem(
-                                        text = { Text(unit) },
-                                        onClick = {
-                                            selectedUnit = unit
-                                            unitDropdownExpanded = false
+                                OutlinedTextField(
+                                    value = selectedUnit,
+                                    onValueChange = {},
+                                    label = { Text("Unit") },
+                                    readOnly = true,
+                                    singleLine = true,
+                                    trailingIcon = {
+                                        IconButton(onClick = {
+                                            unitDropdownExpanded = !unitDropdownExpanded
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = "Select Unit"
+                                            )
                                         }
-                                    )
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                DropdownMenu(
+                                    expanded = unitDropdownExpanded,
+                                    onDismissRequest = { unitDropdownExpanded = false }
+                                ) {
+                                    units.forEach { unit ->
+                                        DropdownMenuItem(
+                                            text = { Text(unit) },
+                                            onClick = {
+                                                selectedUnit = unit
+                                                unitDropdownExpanded = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -312,7 +320,11 @@ fun ProductDetailScreen(
                                 value = expiryDateText,
                                 onValueChange = { expiryDateText = it },
                                 label = { Text("Expiry Date") },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                    showDatePicker = true
+                                },
                                 readOnly = true,
                                 singleLine = true,
                                 trailingIcon = {
