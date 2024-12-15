@@ -30,8 +30,10 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModel
 import com.example.smartreciperecommenderapp.ui.ProfileScreen.ProfileViewModelFactory
 import com.example.smartreciperecommenderapp.ui.navigation.NavGraph
 import com.example.smartreciperecommenderapp.ui.theme.SmartRecipeRecommenderAppTheme
+import com.example.smartreciperecommenderapp.utils.AnalyticsLogger
 import com.example.smartreciperecommenderapp.utils.NetworkMonitor
 import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.messaging.FirebaseMessaging
 import java.util.concurrent.TimeUnit
 
@@ -40,6 +42,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val REQUEST_NOTIFICATION_PERMISSION = 1001
     }
+
+    private lateinit var analytics: FirebaseAnalytics
 
     private lateinit var ingredientRepository: IngredientRepository
 
@@ -99,6 +103,9 @@ class MainActivity : ComponentActivity() {
             workRequest
         )
 
+        analytics = FirebaseAnalytics.getInstance(this)
+        val analyticsLogger = AnalyticsLogger(FirebaseAnalytics.getInstance(this))
+
         enableEdgeToEdge()
 
         setContent {
@@ -116,7 +123,8 @@ class MainActivity : ComponentActivity() {
                         ingredientRepository = ingredientRepository,
                         recipeRepository = recipeRepository,
                         recipeDetailRepository = recipeDetailRepository,
-                        networkMonitor = networkMonitor
+                        networkMonitor = networkMonitor,
+                        analyticsLogger = analyticsLogger
                     )
                 }
             }

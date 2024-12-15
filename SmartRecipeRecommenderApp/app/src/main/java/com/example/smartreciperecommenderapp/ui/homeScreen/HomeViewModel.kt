@@ -19,6 +19,7 @@ import com.example.smartreciperecommenderapp.ui.api.RecipeCategoriesWrapper
 import com.example.smartreciperecommenderapp.ui.api.RecipeTypesWrapper
 import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import com.example.smartreciperecommenderapp.ui.api.ServingSizesWrapper
+import com.example.smartreciperecommenderapp.utils.AnalyticsLogger
 import com.example.smartreciperecommenderapp.utils.NetworkMonitor
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -38,7 +39,8 @@ class HomeViewModel(
     private val fatSecretService: FatSecretService,
     private val recipeRepository: RecipeRepository,
     private val recipeDetailRepository: RecipeDetailRepository,
-    private val networkMonitor: NetworkMonitor
+    private val networkMonitor: NetworkMonitor,
+    private val analyticsLogger: AnalyticsLogger
 ) : ViewModel() {
 
     private val _recipes = MutableStateFlow<List<RecipeModel>>(emptyList())
@@ -129,6 +131,9 @@ class HomeViewModel(
                         localDetails
                     }
                     _selectedRecipeDetails.value = updatedDetails
+
+                    //Tracking the user's browsing
+                    analyticsLogger.logViewRecipe(updatedDetails.name)
                 } else {
                     Log.d("HomeViewModel", "No local details found. Need network.")
                     // No local details, need network

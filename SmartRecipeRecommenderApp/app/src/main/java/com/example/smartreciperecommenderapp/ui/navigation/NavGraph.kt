@@ -29,6 +29,7 @@ import com.example.smartreciperecommenderapp.ui.ProfileScreen.settingsScreen.Set
 import com.example.smartreciperecommenderapp.ui.api.RetrofitInstance
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModel
 import com.example.smartreciperecommenderapp.ui.homeScreen.HomeViewModelFactory
+import com.example.smartreciperecommenderapp.utils.AnalyticsLogger
 import com.example.smartreciperecommenderapp.utils.NetworkMonitor
 
 /**
@@ -59,7 +60,8 @@ fun NavGraph(
     ingredientRepository: IngredientRepository,
     recipeRepository: RecipeRepository,
     recipeDetailRepository: RecipeDetailRepository,
-    networkMonitor: NetworkMonitor
+    networkMonitor: NetworkMonitor,
+    analyticsLogger: AnalyticsLogger
 ) {
     val qrScannerViewModel: QRScannerViewModel = viewModel()
     val loginResult by profileViewModel.loginResult.observeAsState()
@@ -204,7 +206,8 @@ fun NavGraph(
                     fatSecretService = fatSecretService,
                     recipeRepository = recipeRepository,
                     recipeDetailRepository = recipeDetailRepository,
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    analyticsLogger = analyticsLogger
                 )
             )
             HomeScreen(
