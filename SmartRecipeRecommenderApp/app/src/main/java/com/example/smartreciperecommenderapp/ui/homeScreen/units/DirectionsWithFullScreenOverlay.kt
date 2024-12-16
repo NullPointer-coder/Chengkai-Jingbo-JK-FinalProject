@@ -28,7 +28,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import com.example.smartreciperecommenderapp.ui.api.DirectionsWrapper
 import kotlinx.coroutines.launch
 
-
 @Composable
 fun DirectionsWithFullScreenOverlay(directions: DirectionsWrapper) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -51,9 +56,19 @@ fun DirectionsWithFullScreenOverlay(directions: DirectionsWrapper) {
             elevation = CardDefaults.elevatedCardElevation(4.dp),
             colors = CardDefaults.elevatedCardColors(MaterialTheme.colorScheme.surface)
         ) {
+
             val pageCount = directions.direction.size
-            val pagerState = rememberPagerState(pageCount = { pageCount })
+            var savedPage by rememberSaveable { mutableIntStateOf(0) }
+            val pagerState = rememberPagerState(
+                initialPage = savedPage,
+                pageCount = { pageCount }
+            )
             val scope = rememberCoroutineScope()
+
+            // Write back to savedPage when the current page changes
+            LaunchedEffect(pagerState.currentPage) {
+                savedPage = pagerState.currentPage
+            }
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
