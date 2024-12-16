@@ -342,13 +342,6 @@ fun RecipeDetailsPane(
 
                 }
 
-                // Directions section with step indicators
-                if (directions.direction.isNotEmpty()) {
-                    item {
-                        DirectionsWithFullScreenOverlay(directions)
-                    }
-                }
-
 
 
                 // Ingredients list with check icons
@@ -366,6 +359,16 @@ fun RecipeDetailsPane(
                         }
                     }
                 }
+
+
+                // Directions section with step indicators
+                if (directions.direction.isNotEmpty()) {
+                    item {
+                        DirectionsWithFullScreenOverlay(directions)
+                    }
+                }
+
+
 
                 // Nutritional Information with NutritionFactsLabel and MacrosDonutChart
                 servingSizes?.serving?.let { s ->
