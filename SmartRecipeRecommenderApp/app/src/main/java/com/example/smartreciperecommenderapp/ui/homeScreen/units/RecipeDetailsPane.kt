@@ -342,55 +342,13 @@ fun RecipeDetailsPane(
 
                 }
 
-                // Tags displayed as chips
-                // In your code where tags are displayed:
-                if ((categories?.recipe_category?.isNotEmpty() == true)) {
+                // Directions section with step indicators
+                if (directions.direction.isNotEmpty()) {
                     item {
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            elevation = CardDefaults.elevatedCardElevation(4.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "Tags",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(bottom = 12.dp)
-                                )
-
-                                // Add a divider for better separation
-                                HorizontalDivider(
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                                    thickness = 1.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
-
-                                // Use FlowRow to wrap chips nicely with spacing
-                                FlowRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    // Define chip colors once to keep consistent styling
-                                    val chipColors = AssistChipDefaults.assistChipColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-
-                                    categories.recipe_category.forEach { category ->
-                                        AssistChip(
-                                            onClick = {},
-                                            label = { Text(text = category.recipe_category_name) },
-                                            colors = chipColors,
-                                            modifier = Modifier.padding(4.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        DirectionsWithFullScreenOverlay(directions)
                     }
                 }
+
 
 
                 // Ingredients list with check icons
@@ -446,10 +404,53 @@ fun RecipeDetailsPane(
                     }
                 }
 
-                // Directions section with step indicators
-                if (directions.direction.isNotEmpty()) {
+                // Tags displayed as chips
+                // In your code where tags are displayed:
+                if ((categories?.recipe_category?.isNotEmpty() == true)) {
                     item {
-                        DirectionsWithFullScreenOverlay(directions)
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Tags",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(bottom = 12.dp)
+                                )
+
+                                // Add a divider for better separation
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                    thickness = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
+
+                                // Use FlowRow to wrap chips nicely with spacing
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Define chip colors once to keep consistent styling
+                                    val chipColors = AssistChipDefaults.assistChipColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+
+                                    categories.recipe_category.forEach { category ->
+                                        AssistChip(
+                                            onClick = {},
+                                            label = { Text(text = category.recipe_category_name) },
+                                            colors = chipColors,
+                                            modifier = Modifier.padding(4.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -457,6 +458,9 @@ fun RecipeDetailsPane(
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
                 }
+
+
+
             }
         }
     )
