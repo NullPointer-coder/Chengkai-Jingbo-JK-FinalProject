@@ -18,6 +18,7 @@ A Personalized Recipe Solution to Reduce Food Waste and Simplify Meal Planning
 For Fatsecret API, if you want to test it, you must log in to this account and go to this website. Then, add your IP Address to the whitelist.
 
 Email: wangjb12018@gmail.com
+
 password: !2g#NBQ5V252g5$
 
 [IP Restrictions](https://platform.fatsecret.com/my-account/ip-restrictions)
