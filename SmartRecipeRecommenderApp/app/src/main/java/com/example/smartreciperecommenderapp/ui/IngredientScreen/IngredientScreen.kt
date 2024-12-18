@@ -298,7 +298,7 @@ fun IngredientScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 显示用户配料列表
+                    // Show user ingredient list
                     IngredientLists(
                         expiredIngredients = expiredIngredients,
                         nonExpiredIngredients = nonExpiredIngredients,

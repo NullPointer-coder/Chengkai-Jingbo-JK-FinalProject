@@ -408,7 +408,6 @@ fun RecipeDetailsPane(
                 }
 
                 // Tags displayed as chips
-                // In your code where tags are displayed:
                 if ((categories?.recipe_category?.isNotEmpty() == true)) {
                     item {
                         ElevatedCard(
