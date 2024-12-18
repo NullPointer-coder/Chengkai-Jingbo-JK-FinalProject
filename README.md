@@ -13,6 +13,15 @@ Fridgify
 ## Brief
 A Personalized Recipe Solution to Reduce Food Waste and Simplify Meal Planning
 
+## IP Restrictions
+
+For Fatsecret API, if you want to test it, you must log in to this account and go to this website. Then, add your IP Address to the whitelist.
+
+Email: wangjb12018@gmail.com
+password: !2g#NBQ5V252g5$
+
+[IP Restrictions](https://platform.fatsecret.com/my-account/ip-restrictions)
+
 ## Project Description
 
 This application provides a range of UI examples and feature demonstrations, including the ability to browse recipes and ingredients, and experience different layouts depending on whether the user is signed in. By leveraging modern Android technologies and libraries, it offers a seamless, responsive, and engaging user experience.
@@ -611,7 +620,6 @@ We have integrated **Firebase Analytics** into the application to track user beh
   Over time, data collected by Firebase Analytics (such as active users, retention rate, and event frequency) can be viewed in the Firebase console. This information helps us make data-driven decisions to enhance the user experience, improve content recommendations, and optimize the app’s workflows.
 
 By integrating Firebase Analytics and recording relevant user events, we fully meet the requirement for implementing analytics to track app usage and user behavior.
-
 
 ## App Screens
 
